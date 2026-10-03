@@ -1,0 +1,137 @@
+/*
+ * Design tokens (DESIGN.md front matter). This is the only place where token values are written.
+ * 1. @theme exposes the tokens as Tailwind utilities (bg-neutral-100, shadow-hard-md, text-h1, …).
+ * 2. :root maps Basecoat's variables onto the same tokens.
+ * Light theme only (DESIGN.md §2.2); colors are variables so a dark theme can be added later.
+ */
+
+@theme {
+    /* Colors. Tailwind's default neutral scale is removed so only token shades exist.
+       Neutral 50–950: OKLCH scale from #F8FAFC to #1F2128 (D27). */
+    --color-neutral-*: initial;
+    --color-neutral-0: #ffffff;
+    --color-neutral-50: #f8fafc;
+    --color-neutral-100: #f3f5f8;
+    --color-neutral-200: #e7eaee;
+    --color-neutral-300: #d5dadf;
+    --color-neutral-400: #a5adb7;
+    --color-neutral-500: #7d8591;
+    --color-neutral-600: #636a76;
+    --color-neutral-700: #525763;
+    --color-neutral-800: #3e424c;
+    --color-neutral-900: #2f323a;
+    --color-neutral-950: #1f2128;
+
+    --color-primary-light: #8183c4;
+    --color-primary-dark: #4b4d8c;
+    --color-primary-tint: #ecedf7;
+
+    --color-success: #15803d;
+    --color-warning: #b45309;
+    --color-info: #2563eb;
+
+    /* Fonts (DESIGN.md §3). */
+    --font-sans: 'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-heading: 'Funnel Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, monospace;
+
+    /* Type scale. Weights are set where the token is used. */
+    --text-display: clamp(2.5rem, 5vw, 3.5rem);
+    --text-display--line-height: 1.05;
+    --text-display--letter-spacing: -0.02em;
+    --text-h1: clamp(1.75rem, 3vw, 2.5rem);
+    --text-h1--line-height: 1.1;
+    --text-h1--letter-spacing: -0.015em;
+    --text-h2: clamp(1.375rem, 2.2vw, 1.75rem);
+    --text-h2--line-height: 1.2;
+    --text-h3: clamp(1.125rem, 1.6vw, 1.25rem);
+    --text-h3--line-height: 1.25;
+    --text-body: 0.9375rem;
+    --text-body--line-height: 1.5;
+    --text-body-sm: 0.8125rem;
+    --text-body-sm--line-height: 1.45;
+    --text-label: 0.8125rem;
+    --text-label--line-height: 1.25;
+    --text-data: 0.8125rem;
+    --text-data--line-height: 1.3;
+    --text-metric: clamp(1.375rem, 2.4vw, 1.75rem);
+    --text-metric--line-height: 1.1;
+
+    /* Radius. Replaces Basecoat's px-based calc() values. */
+    --radius-none: 0rem;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+
+    /* Shadows (DESIGN.md §1.1). Hard shadows have no blur and use neutral-800 (D26). */
+    --shadow-hard-sm: 0.125rem 0.125rem 0 0 var(--color-neutral-800);
+    --shadow-hard-md: 0.1875rem 0.1875rem 0 0 var(--color-neutral-800);
+    --shadow-hard-lg: 0.3125rem 0.3125rem 0 0 var(--color-neutral-800);
+    --shadow-soft: 0 0.0625rem 0.125rem 0 rgb(31 33 40 / 0.06);
+
+    /* Motion (DESIGN.md §7). */
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root {
+    /* Borders. */
+    --border-hairline: 0.0625rem;
+    --border-strong: 0.09375rem;
+
+    /* Motion durations. */
+    --duration-fast: 120ms;
+    --duration-base: 180ms;
+    --duration-slow: 260ms;
+
+    /* Layout. */
+    --page-padding-inline: clamp(1rem, 3vw, 2rem);
+    --page-padding-block: clamp(1rem, 2.5vw, 2rem);
+    --content-max-width: 90rem;
+    --readable-width: 65ch;
+    --sidebar-width: clamp(13rem, 16vw, 16rem);
+    --sidebar-collapsed-width: 3.5rem;
+    --header-height: 3.5rem;
+    --viewer-min-height: clamp(18rem, 45vh, 34rem);
+    --control-height: 2.25rem;
+    --control-height-sm: 1.875rem;
+    --table-row-height: 2.5rem;
+    --thumb-size: 2.5rem;
+    --icon-sm: 1rem;
+    --icon-md: 1.25rem;
+
+    /* Primary color (Basecoat reads --primary). */
+    --color-primary-base: #6366af;
+
+    /* Basecoat variable overrides. */
+    --radius: var(--radius-lg);
+    --background: var(--color-neutral-100);
+    --foreground: var(--color-neutral-950);
+    --card: var(--color-neutral-0);
+    --card-foreground: var(--color-neutral-950);
+    --popover: var(--color-neutral-0);
+    --popover-foreground: var(--color-neutral-950);
+    --primary: var(--color-primary-base);
+    --primary-foreground: var(--color-neutral-0);
+    --secondary: var(--color-neutral-0);
+    --secondary-foreground: var(--color-neutral-950);
+    --muted: var(--color-neutral-100);
+    --muted-foreground: var(--color-neutral-600);
+    --accent: var(--color-primary-tint);
+    --accent-foreground: var(--color-primary-dark);
+    --destructive: #b91c1c;
+    --border: var(--color-neutral-200);
+    --input: var(--color-neutral-300);
+    --ring: rgb(99 102 175 / 0.35);
+    --sidebar: var(--color-neutral-0);
+    --sidebar-foreground: var(--color-neutral-950);
+    --sidebar-primary: var(--color-primary-base);
+    --sidebar-primary-foreground: var(--color-neutral-0);
+    --sidebar-accent: var(--color-primary-tint);
+    --sidebar-accent-foreground: var(--color-primary-dark);
+    --sidebar-border: var(--color-neutral-200);
+    --sidebar-ring: rgb(99 102 175 / 0.35);
+    --sidebar-width: clamp(13rem, 16vw, 16rem);
+    --scrollbar-thumb: var(--color-neutral-300);
+}
