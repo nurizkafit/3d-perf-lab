@@ -361,6 +361,64 @@
         color: var(--color-neutral-600);
     }
 
+    /* ---------- Asset Selector (PRD.md §8.2) ---------- */
+
+    .dialog.asset-selector > * {
+        width: min(100vw - 2rem, 64rem);
+        max-width: none;
+    }
+
+    .selector-list {
+        max-height: min(55vh, 28rem);
+        overflow-y: auto;
+        border: var(--border-hairline) solid var(--color-neutral-200);
+        border-radius: var(--radius-lg);
+        background: var(--color-neutral-0);
+    }
+
+    .selector-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: calc(var(--thumb-size) + 1rem);
+        padding: 0.5rem 0.75rem;
+        border-block-end: var(--border-hairline) solid var(--color-neutral-200);
+        cursor: pointer;
+    }
+
+    .selector-option:hover {
+        background: var(--color-neutral-50);
+    }
+
+    .selector-option:focus-visible {
+        outline-offset: -0.125rem;
+    }
+
+    .selector-option[aria-selected='true'] {
+        background: var(--color-primary-tint);
+    }
+
+    .selector-check {
+        display: grid;
+        place-items: center;
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        border: var(--border-strong) solid var(--color-neutral-600);
+        border-radius: var(--radius-sm);
+        color: transparent;
+    }
+
+    .selector-option[aria-selected='true'] .selector-check {
+        background: var(--color-primary-base);
+        border-color: var(--color-primary-base);
+        color: var(--color-neutral-0);
+    }
+
+    .selector-preview {
+        min-height: min(55vh, 28rem);
+    }
+
     /* ---------- Bulk upload (DESIGN.md §9.1) ---------- */
 
     .dropzone {
@@ -416,6 +474,22 @@
         background: var(--color-primary-tint);
     }
 
+    .upload-progress {
+        height: 0.25rem;
+        margin-block-start: 0.375rem;
+        background: var(--color-neutral-200);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    .upload-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--color-primary-base);
+        transform-origin: left;
+        transition: transform var(--duration-base) var(--ease-out);
+    }
+
     .upload-actions {
         position: sticky;
         bottom: 0;
@@ -449,6 +523,51 @@
         border: var(--border-hairline) solid var(--color-neutral-600);
         border-radius: var(--radius-md);
         font-size: var(--text-body-sm);
+    }
+
+    /* Benchmark canvas: fixed drawing buffer, scaled by CSS to fit (BENCHMARK.md §2). */
+    .benchmark-stage {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Progress bar inside the strip. No transition: it jumps between windows (BENCHMARK.md §4.1 step 6). */
+    .benchmark-progress {
+        flex-basis: 100%;
+        height: 0.375rem;
+        background: var(--color-neutral-600);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    .benchmark-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--color-neutral-0);
+        transform-origin: left;
+    }
+
+    .benchmark-panel {
+        width: min(100%, 36rem);
+        padding: 1.5rem;
+        background: var(--color-neutral-0);
+        color: var(--color-neutral-950);
+        border: var(--border-strong) solid var(--color-neutral-800);
+        border-radius: var(--radius-xl);
+    }
+
+    .benchmark-stage:empty {
+        display: none;
+    }
+
+    .benchmark-canvas-element {
+        display: block;
+        max-width: 100%;
+        max-height: calc(100svh - 10rem);
+        width: auto;
+        height: auto;
     }
 
     .benchmark-canvas {
@@ -1049,8 +1168,85 @@
         overflow: hidden;
     }
 
+    .viewer-stage {
+        position: absolute;
+        inset: 0;
+    }
+
+    .viewer-stage > canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+    }
+
+    .viewer-frame:fullscreen {
+        border-radius: 0;
+    }
+
+    .viewer-overlay {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Each overlay shows only in its state (set by viewer.js on [data-viewer]). */
+    .viewer-frame [data-show-when] {
+        display: none;
+    }
+
+    .viewer-frame[data-state='loading'] [data-show-when='loading'],
+    .viewer-frame[data-state='error'] [data-show-when='error'] {
+        display: flex;
+    }
+
+    .viewer-frame[data-state='ready'] .viewer-controls[data-show-when='ready'] {
+        display: flex;
+    }
+
+    .viewer-frame[data-state='ready'] .viewer-hint[data-show-when='ready'] {
+        display: block;
+    }
+
+    .viewer-controls {
+        position: absolute;
+        bottom: 0.75rem;
+        left: 0.75rem;
+        z-index: 1;
+        gap: 0.5rem;
+    }
+
+    .viewer-hint {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
+        z-index: 1;
+        max-width: 50%;
+        padding: 0.25rem 0.5rem;
+        background: var(--color-neutral-0);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-label);
+        color: var(--color-neutral-600);
+        text-align: end;
+        pointer-events: none;
+    }
+
+    .hint-touch {
+        display: none;
+    }
+
+    @media (pointer: coarse) {
+        .hint-pointer {
+            display: none;
+        }
+
+        .hint-touch {
+            display: inline;
+        }
+    }
+
     .viewer-label {
         position: absolute;
+        z-index: 1;
         top: 0.75rem;
         left: 0.75rem;
         padding: 0.25rem 0.5rem;

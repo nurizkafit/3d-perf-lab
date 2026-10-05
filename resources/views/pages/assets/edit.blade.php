@@ -1,16 +1,25 @@
-<x-layouts::app :title="'Edit '.$item['name']" description="Edit metadata only. The model file cannot be replaced; upload a new asset instead.">
-    <form class="card max-w-3xl space-y-4" method="POST" action="#">
+<x-layouts::app :title="'Edit '.$asset->name" description="Edit metadata only. The model file cannot be replaced, because a changed file would make old results invalid; upload a new asset instead." :sample="false">
+    <form class="card max-w-3xl space-y-4" method="POST" action="{{ route('assets.update', $asset) }}">
+        @csrf
+        @method('PUT')
         <div class="grid gap-4 sm:grid-cols-2">
-            <x-ui.input name="name" label="Asset name" :value="$item['name']" />
-            <x-ui.select name="tool" label="Tool" :options="['Blender' => 'Blender', 'Prisma3D' => 'Prisma3D', 'Spline' => 'Spline']" :value="$item['tool']" />
-            <x-ui.input name="author" label="Author" :value="$item['author']" hint="Admins can change the author. Users see it read-only." />
-            <x-ui.input name="production_time_hours" label="Production time (h)" type="number" min="0" step="0.25" :value="$item['hours']" />
+            <x-ui.input name="name" label="Asset name" :value="$asset->name" required />
+            <x-ui.select name="tool_id" label="Tool" :options="$tools" :value="$asset->tool_id" />
+            @can('setAuthor', \App\Models\Asset::class)
+                <x-ui.input name="author" label="Author" :value="$asset->author" required />
+            @else
+                <div>
+                    <p class="field-label">Author</p>
+                    <p class="flex min-h-[var(--control-height)] items-center">{{ $asset->author }}</p>
+                    <p class="field-hint">Only an administrator can change the author.</p>
+                </div>
+            @endcan
+            <x-ui.input name="production_time_hours" label="Production time (h)" type="number" min="0" step="0.25" :value="(float) $asset->production_time_hours" required />
         </div>
-        <x-ui.textarea name="description" label="Description" :value="$item['description']" hint="Optional." />
+        <x-ui.textarea name="description" label="Description" :value="$asset->description" hint="Optional." />
         <div class="flex flex-wrap items-center gap-3">
-            <x-ui.button type="submit" icon="floppy-disk" disabled>Save changes</x-ui.button>
-            <x-ui.button :href="route('assets.show', $item['id'])" variant="outline">Cancel</x-ui.button>
-            <span class="text-body-sm text-neutral-600">Saving arrives in M3.3.</span>
+            <x-ui.button type="submit" icon="floppy-disk">Save changes</x-ui.button>
+            <x-ui.button :href="route('assets.show', $asset)" variant="outline">Cancel</x-ui.button>
         </div>
     </form>
 </x-layouts::app>

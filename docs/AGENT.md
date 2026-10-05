@@ -86,7 +86,7 @@ Only these packages are approved without a question. Anything else needs approva
 
 - Composer: `laravel/framework`, a Phosphor Blade icon package (for example `codeat3/blade-phosphor-icons`, confirm at M0), dev tools that ship with Laravel (Pint, Pest/PHPUnit, Collision).
 - npm: `tailwindcss`, `@tailwindcss/vite`, `basecoat-css`, `alpinejs`, `three`, `@fontsource/funnel-display` (or variable variant), `@fontsource-variable/atkinson-hyperlegible-next` (or static variant), `@fontsource-variable/atkinson-hyperlegible-mono` (or static variant), `laravel-vite-plugin`, `vite`.
-- Chart library: **not yet approved**. Propose one at M4.1 (candidate: `uplot`).
+- Chart library: `uplot` (approved at M4.1). Loaded with dynamic `import()` on result pages only.
 
 ### 5.3 Not allowed without approval
 

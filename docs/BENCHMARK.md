@@ -64,7 +64,7 @@ Measured on a **cold** load and a **warm** load.
 | `first_frame_ms` | End of GPU upload → the next `requestAnimationFrame` callback after the first `renderer.render` |
 | `ttff_ms` | **Time to first frame** = fetch + parse + GPU upload + first frame |
 
-Cold load: request with `cache: 'no-store'` and a unique query parameter. Warm load: the same URL a second time with the default cache. Between loads, the scene, geometries, materials, and textures are disposed and `renderer.info.memory` is checked to be back to its baseline.
+Cold load: request with a unique query parameter and `cache: 'reload'` (always downloads; the response is stored). Warm load: the same URL a second time with the default cache, so it is served from the browser cache (`transfer_size` 0 when the cache hit). Decision D35 (M4.1): the earlier `cache: 'no-store'` never stored the response, so the warm load downloaded again. Between loads, the scene, geometries, materials, and textures are disposed and `renderer.info.memory` is checked to be back to its baseline.
 
 Network conditions are not simulated in the MVP. The run records `navigator.connection.effectiveType` when the browser exposes it.
 

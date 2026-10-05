@@ -14,7 +14,7 @@
         ],
         'Performance Lab' => [
             ['label' => 'Comparison Test', 'icon' => 'columns', 'href' => route('lab.comparison'), 'active' => $is('lab.comparison', 'lab.index')],
-            ['label' => 'Stress Test', 'icon' => 'stack', 'soon' => 'M4.3'],
+            ['label' => 'Stress Test', 'icon' => 'stack', 'href' => route('lab.stress'), 'active' => $is('lab.stress')],
             ['label' => 'Headroom Test', 'icon' => 'gauge', 'soon' => 'M4.4'],
         ],
         'Results' => [

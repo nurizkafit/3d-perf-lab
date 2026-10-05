@@ -363,7 +363,7 @@ T
 ### 9.3 Benchmark mode
 
 - Full-screen view, `neutral-800` background, canvas centered at its fixed drawing-buffer aspect ratio.
-- One thin progress strip above the canvas: method, asset, repetition, step, time left. Updated between windows only.
+- One thin progress strip above the canvas: method, asset, repetition, step, time left, "Measurement n of N", and a thin progress bar (`neutral-0` on `neutral-600`, 5.45:1) for completed measurements. Updated between windows only; the bar jumps and is never animated.
 - A Cancel button outside the canvas area.
 - No other UI.
 
@@ -379,7 +379,7 @@ T
 
 ## 10. Charts
 
-- Library: a small canvas chart library approved at milestone M4.1 (candidate: uPlot). Do not use a large charting framework.
+- Library: uPlot (canvas, approved at M4.1). Do not use a large charting framework.
 - Allowed: line (metric vs instance count), bar (per-asset values, selection order), stacked bar (load phases), box plot or histogram (frame intervals), probe sequence (Headroom).
 - Not allowed: pie, gauge, 3D charts, gradients, any composite score.
 - Series colors: `primary`, `neutral-800`, `primary-light`, `neutral-600`, then dashed variants. Distinguish series by line style and marker shape as well as color.

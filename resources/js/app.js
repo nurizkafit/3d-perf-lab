@@ -2,17 +2,58 @@ import Alpine from 'alpinejs';
 import 'basecoat-css/all';
 import appShell from './features/app-shell';
 import uploadTable from './features/upload';
+import assetBulk from './features/asset-bulk';
+import deviceCheck from './features/device';
+import budgetStep from './features/budget-step';
+import assetSelector from './features/asset-selector';
+import labConfig from './features/lab-config';
 
 window.Alpine = Alpine;
 Alpine.data('appShell', appShell);
 Alpine.data('uploadTable', uploadTable);
+Alpine.data('assetBulk', assetBulk);
+Alpine.data('deviceCheck', deviceCheck);
+Alpine.data('budgetStep', budgetStep);
+Alpine.data('assetSelector', assetSelector);
+Alpine.data('labConfig', labConfig);
 Alpine.start();
+
+// Three.js stays out of the entry bundle: the viewer loads only on pages that show a model.
+const viewerElements = document.querySelectorAll('[data-viewer][data-src]');
+if (viewerElements.length) {
+    import('./three/viewer.js').then(({ mountViewerElement }) => viewerElements.forEach(mountViewerElement));
+}
+
+const engineSelfTest = document.querySelector('[data-engine-self-test]');
+if (engineSelfTest) {
+    import('./features/engine-self-test.js').then(({ initEngineSelfTest }) => initEngineSelfTest(engineSelfTest));
+}
+
+const resultsCharts = document.querySelector('[data-results-charts]');
+if (resultsCharts) {
+    import('./features/results.js').then(({ initResults }) => initResults(resultsCharts));
+}
+
+const benchmarkRun = document.querySelector('[data-benchmark-run]');
+if (benchmarkRun) {
+    import('./features/benchmark-run.js').then(({ initBenchmarkRun }) => initBenchmarkRun(benchmarkRun));
+}
+
+const viewerLab = document.querySelector('[data-viewer-lab]');
+if (viewerLab) {
+    import('./features/viewer-lab.js').then(({ initViewerLab }) => initViewerLab(viewerLab));
+}
 
 // Open a <dialog> from any trigger: <button data-dialog-open="dialog-id">.
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-dialog-open]');
     if (!trigger) return;
     document.getElementById(trigger.dataset.dialogOpen)?.showModal();
+});
+
+// Close the surrounding dialog: <button data-dialog-close>.
+document.addEventListener('click', (event) => {
+    event.target.closest('[data-dialog-close]')?.closest('dialog')?.close();
 });
 
 // Close a modal dialog when the backdrop (the <dialog> element itself) is clicked.

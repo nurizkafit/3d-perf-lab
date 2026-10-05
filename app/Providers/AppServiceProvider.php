@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\DeviceClass;
 use App\Models\User;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,5 +29,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Option lists have no single model, so they use a gate instead of a policy (PRD.md §11).
         Gate::define('manage-option-lists', fn (User $user) => $user->isAdmin());
+
+        // The header chip shows the device class confirmed in this session (DESIGN.md §8.1).
+        View::composer('components.performance.device-chip', function ($view) {
+            $id = session('device_class_id');
+            $view->with('confirmedClass', $id ? DeviceClass::find($id)?->name : null);
+        });
     }
 }

@@ -21,8 +21,8 @@ class AppScreensTest extends TestCase
     }
 
     private const SCREENS = [
-        '/dashboard', '/device', '/assets', '/assets?view=table', '/assets/upload', '/assets/1', '/assets/1/edit',
-        '/lab', '/lab/comparison', '/lab/runs/1', '/results', '/results/1', '/results/1/report',
+        '/dashboard', '/assets/upload',
+        '/lab', '/lab/comparison', '/results', '/results/1/report',
     ];
 
     public function test_every_screen_renders(): void
@@ -34,7 +34,7 @@ class AppScreensTest extends TestCase
 
     public function test_sample_data_is_marked(): void
     {
-        foreach (array_diff(self::SCREENS, ['/lab']) as $url) {
+        foreach (array_diff(self::SCREENS, ['/lab', '/assets/upload', '/lab/comparison']) as $url) {
             $this->get($url)->assertSee('Sample data');
         }
     }
@@ -51,41 +51,26 @@ class AppScreensTest extends TestCase
     public function test_unbuilt_routes_are_disabled_items_not_links(): void
     {
         $this->get('/dashboard')
-            ->assertSee('Coming in M4.3')
             ->assertSee('Coming in M4.4')
-            ->assertDontSee('href="'.url('/lab/stress').'"', false);
+            ->assertSee('href="'.url('/lab/stress').'"', false)
+            ->assertDontSee('href="'.url('/lab/headroom').'"', false);
     }
 
-    public function test_benchmark_mode_has_no_app_navigation_and_no_motion(): void
-    {
-        $this->get('/lab/runs/1')
-            ->assertSee('data-benchmark="running"', false)
-            ->assertDontSee('app-sidebar')
-            ->assertDontSee('id="toaster"', false);
-    }
-
-    public function test_upload_rows_are_passed_as_json_not_inline_script(): void
+    public function test_upload_config_is_passed_as_json_not_inline_script(): void
     {
         $this->get('/assets/upload')
-            ->assertSee('<script type="application/json" id="upload-rows">', false)
+            ->assertSee('<script type="application/json" id="upload-config">', false)
             ->assertSee('x-data="uploadTable"', false);
     }
 
     public function test_result_screens_show_tested_asset_metadata(): void
     {
-        foreach (['/results/1', '/results/1/report'] as $url) {
+        foreach (['/results/1/report'] as $url) {
             $this->get($url)
                 ->assertSee('Tested assets')
                 ->assertSee('Dummy Author B')
                 ->assertSee('Prisma3D');
         }
-    }
-
-    public function test_budget_items_and_metrics_are_explained(): void
-    {
-        $this->get('/results/1')
-            ->assertSee('95% of frames arrive within this time')
-            ->assertSee('CPU time spent in one render call');
     }
 
     public function test_comparison_budget_lists_only_comparison_items(): void

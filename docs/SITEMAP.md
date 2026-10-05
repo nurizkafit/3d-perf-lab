@@ -68,16 +68,21 @@ All routes below require login and an active account.
 
 | Route                          | Page                                                         | Access         |
 | ------------------------------ | ------------------------------------------------------------ | -------------- |
-| `GET /assets`                  | Library: grid/table, search, filters, sort, `?deleted=1`     | All users      |
+| `GET /assets`                  | Library: grid/table, search, filters, sort, `?deleted=1`, `?bulk=1` (bulk delete mode) | All users |
+| `DELETE /assets/bulk`          | Bulk soft delete of the selected assets (skips assets the user does not own) | All users |
+| `DELETE /assets/bulk/force`    | Bulk permanent delete (skips assets used by any test)        | Admin          |
 | `GET /assets/upload`           | Bulk upload: dropzone + metadata table                       | All users      |
 | `GET /assets/upload/{session}` | Upload session record and resume                             | Session owner  |
+| `GET /assets/upload/{session}/items/{item}/thumbnail` | Staged thumbnail                     | Session owner  |
 | `GET /assets/{asset}`          | Detail: preview, metadata, asset metrics, tests that used it | All users      |
-| `GET /assets/{asset}/download` | Stream the web asset                                         | All users      |
+| `GET /assets/{asset}/download` | Stream the web asset (GLB, or ZIP for GLTF)                  | All users      |
+| `GET /assets/{asset}/files/{name}` | Model file or GLTF dependent for the viewer (stored names only) | All users  |
+| `GET /assets/{asset}/thumbnail` | Thumbnail image                                             | All users      |
 | `GET /assets/{asset}/edit`     | Edit metadata                                                | Owner or admin |
 | `PUT /assets/{asset}`          | Save metadata                                                | Owner or admin |
 | `DELETE /assets/{asset}`       | Soft delete                                                  | Owner or admin |
 | `POST /assets/{asset}/restore` | Restore                                                      | Owner or admin |
-| `DELETE /assets/{asset}/force` | Permanent delete (blocked if used in a published report)     | Admin          |
+| `DELETE /assets/{asset}/force` | Permanent delete (blocked if any test uses the asset)        | Admin          |
 
 ### 3.3 Performance Lab
 

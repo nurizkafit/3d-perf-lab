@@ -49,8 +49,14 @@ class AssetPolicy
         return $user->isAdmin() || $user->owns($asset->uploaded_by);
     }
 
-    /** Admin only. Blocking when a published report uses the asset is checked in M3.3. */
+    /** Admin only. Blocked while any test uses the asset (AssetDeletionService, decision D33). */
     public function forceDelete(User $user, Asset $asset): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /** Bulk permanent delete (decision D34). */
+    public function forceDeleteAny(User $user): bool
     {
         return $user->isAdmin();
     }

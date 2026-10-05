@@ -20,33 +20,6 @@ class SampleScreens
         ];
     }
 
-    public static function asset(): array
-    {
-        return self::assets()[0] + [
-            'description' => 'A single apple with a stem and one leaf. Dummy development fixture.',
-            'meshes' => 3,
-            'materials' => 2,
-            'textures' => 0,
-            'texture_dimensions' => '—',
-            'texture_memory' => '0 MB',
-            'tests' => [
-                ['name' => 'Three tools, mid-range Android', 'method' => 'Comparison Test', 'date' => '2026-09-28'],
-                ['name' => 'Mixed Blender scene', 'method' => 'Stress Test', 'date' => '2026-09-02'],
-            ],
-        ];
-    }
-
-    /** Rows for the bulk upload table (PRD.md §7.1). */
-    public static function uploadRows(): array
-    {
-        return [
-            ['id' => 'r1', 'file' => 'apple.glb', 'name' => 'Apple', 'author' => 'Dummy Admin', 'tool' => '', 'hours' => '', 'format' => 'GLB', 'size' => '10.2 KB', 'status' => 'staged', 'description' => ''],
-            ['id' => 'r2', 'file' => 'chicken_v2.glb', 'name' => 'Chicken V2', 'author' => 'Dummy Admin', 'tool' => '', 'hours' => '', 'format' => 'GLB', 'size' => '9.7 KB', 'status' => 'staged', 'description' => ''],
-            ['id' => 'r3', 'file' => 'open-book.glb', 'name' => 'Open Book', 'author' => 'Dummy Admin', 'tool' => '', 'hours' => '', 'format' => 'GLB', 'size' => '5.7 KB', 'status' => 'staged', 'description' => ''],
-            ['id' => 'r4', 'file' => 'notes.glb', 'name' => 'Notes', 'author' => 'Dummy Admin', 'tool' => '', 'hours' => '', 'format' => '—', 'size' => '1.1 KB', 'status' => 'invalid', 'description' => '', 'error' => 'Not a GLB file: the file does not start with "glTF".'],
-        ];
-    }
-
     /** @return list<array<string, mixed>> */
     public static function tests(): array
     {

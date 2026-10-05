@@ -60,7 +60,8 @@ class DevFixtureSeeder extends Seeder
                 continue;
             }
 
-            $path = 'assets/web/'.Str::uuid().'.glb';
+            $uuid = (string) Str::uuid();
+            $path = "assets/web/{$uuid}/{$uuid}.glb"; // same layout as registered uploads
             Storage::disk('local')->put($path, fopen($source, 'rb'));
 
             Asset::create([

@@ -145,7 +145,7 @@ Only a **registered** asset is available in the Performance Lab. A staged file i
 
 Full definitions, metrics, and run protocol: `BENCHMARK.md`.
 
-The Mixed-Asset Stress Test and the Mixed-Asset Headroom Test require that **all selected assets use the same authoring tool**. The UI blocks the run and the backend rejects the request when this rule is not satisfied.
+A repeated-asset Stress Test uses exactly one asset; mixed scenarios use 2–8 assets. The Mixed-Asset Stress Test and the Mixed-Asset Headroom Test require that **all selected assets use the same authoring tool**. The UI blocks the run and the backend rejects the request when this rule is not satisfied.
 
 ### 6.3 Performance budget
 
@@ -180,7 +180,7 @@ One upload flow handles one file or many files. There is no separate single-file
 
 - A drag-and-drop area, with a click-to-browse fallback.
 - Accepted formats: `.glb`, `.gltf`. A `.gltf` upload must include its `.bin` and texture files in the same drop; the system groups them by the references inside the `.gltf`. If a referenced file is missing, the row fails with a clear reason.
-- Each file uploads on its own request with a progress indicator.
+- Each model uploads on its own request with a progress indicator (a .gltf travels with its referenced .bin and texture files in the same request).
 - The browser loads each file locally with Three.js to read its metrics and render a thumbnail. If WebGL is not available or the model does not load, the row shows a neutral placeholder and the server-side metrics only.
 
 **Step 2 — Complete metadata in the table**
@@ -231,6 +231,7 @@ Description is optional and is in the expanded row.
 - Sort: name, file size, triangle count, upload date.
 - Filters and search use query parameters, so a filtered view has a shareable URL and works without JavaScript.
 - Show deleted assets with a "Deleted" filter. Deleted assets can be restored.
+- **Bulk delete** (table view, "Bulk delete" toggle): select rows on the page, then **Delete** (soft delete; owners for their own assets, admins for any) or, for admins, **Delete permanently**. Rows used in a test are marked "Used in N tests" and are not counted for permanent delete, which is disabled when none of the selected rows qualifies. Both actions ask for confirmation; the server checks each asset again and reports skipped ones. In the Deleted view only the permanent action is offered (admins).
 
 ### 7.3 Asset detail
 
@@ -238,14 +239,14 @@ Description is optional and is in the expanded row.
 - Metadata: name, tool, author, uploaded by, production time, description.
 - Asset metrics (derived): format, file size, vertices, triangles, meshes, materials, textures, texture dimensions, estimated texture memory.
 - Asset metrics and runtime metrics are always in separate sections.
-- Download the web asset (authorized users only).
+- Download the web asset (authorized users only): a GLB as is; a GLTF as a ZIP with its .bin and texture files.
 - List of tests that used this asset.
 
 ### 7.4 Edit and delete
 
 - Edit is metadata only. The model file is never replaced, because a changed file makes old results invalid. To change the file, upload a new asset.
 - Delete is a soft delete. A deleted asset cannot be selected for new tests. Old results keep their reference.
-- Permanent delete is admin only and is blocked when a published report uses the asset.
+- Permanent delete is admin only and is blocked when any test uses the asset (this includes every asset in a published report). Test results always keep their assets; such an asset can stay soft-deleted. Permanent delete removes the asset record and its files.
 
 ### 7.5 Derived asset metrics
 
@@ -404,7 +405,7 @@ test_runs            id, test_session_id, device_class_id, environment_json, sta
                      started_at, completed_at, created_by
 test_results         id, test_run_id, asset_id (nullable for mixed), step_instances (nullable),
                      repetition, metrics_json, samples_json, created_at
-budget_evaluations   id, test_run_id, asset_id, item_key, limit_value, measured_value,
+budget_evaluations   id, test_run_id, asset_id, step_instances (nullable; Stress per step), item_key, limit_value, measured_value,
                      outcome (pass|fail|not_measured)
 
 reports              id, test_session_id, title, question, conclusion, limitations,
@@ -441,18 +442,21 @@ PATCH  /api/uploads/items/{item}
 DELETE /api/uploads/items/{item}
 POST   /api/uploads/sessions/{session}/register
 
-GET    /api/assets                    (selector search)
+GET    /api/assets                    (selector search: q, tool, author, format; registered, not deleted; max 60)
 POST   /api/tests                     (create session)
 POST   /api/tests/{test}/runs         (start run, returns run id)
 POST   /api/runs/{run}/results        (submit results; server evaluates budget)
 POST   /api/runs/{run}/invalidate
+POST   /api/runs/{run}/cancel
 ```
 
 ---
 
 ## 14. Storage and security
 
-- Uploads go to private storage: `storage/app/private/assets/{web,thumbnails}` and `storage/app/private/staging/{session}`.
+- Uploads go to private storage: `storage/app/private/staging/{session}/{uuid}/` while staged, then `storage/app/private/assets/web/{uuid}/` (the model and, for GLTF, its dependents) and `storage/app/private/assets/thumbnails/{uuid}.webp|jpg`.
+- GLTF dependents are stored under generated names (`{uuid}-{n}.{ext}`) and the stored .gltf is rewritten to reference them; URIs that leave the folder or use a scheme are rejected.
+- Thumbnails: rendered in the browser, 512 × 512, WebP (JPEG fallback), at most 512 KB.
 - Generated file names (UUID). Never use client file names or paths for storage.
 - Authorized downloads stream through a controller with a policy check.
 - Public reproduction files stream through `/reports/{slug}/assets/{token}`. The token is random, per report and per asset, and valid only while the report is published and the asset is approved.

@@ -20,7 +20,7 @@
         </x-reports.report-section>
 
         <x-reports.report-section id="reproduction" label="Interactive reproduction">
-            <x-performance.viewer mode="reproduction" label="Interactive reproduction" :state="$previewState" />
+            <x-performance.viewer mode="reproduction" label="Interactive reproduction" :state="$previewState" placeholder="The interactive reproduction arrives with published reports (M4.5)." />
             <p class="text-body-sm text-neutral-600">This scene rebuilds the test setup for viewing only. Your device is not measured; the numbers on this page are the recorded results.</p>
         </x-reports.report-section>
 

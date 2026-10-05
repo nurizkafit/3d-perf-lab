@@ -8,12 +8,11 @@
             </x-ui.card>
         </li>
         <li>
-            <div class="card flex h-full flex-col gap-3 text-neutral-600" aria-disabled="true">
+            <x-ui.card :href="route('lab.stress')" class="flex h-full flex-col gap-3">
                 <x-ui.icon name="stack" size="md" />
                 <h2 class="text-h3 font-semibold">Stress Test</h2>
-                <p class="text-body-sm">N instances in one scene at fixed steps. How does performance change as the count grows?</p>
-                <x-ui.badge variant="outline" class="mt-auto w-fit">Coming in M4.3</x-ui.badge>
-            </div>
+                <p class="text-body-sm text-neutral-600">N instances in one scene at fixed steps. How does performance change as the count grows?</p>
+            </x-ui.card>
         </li>
         <li>
             <div class="card flex h-full flex-col gap-3 text-neutral-600" aria-disabled="true">
