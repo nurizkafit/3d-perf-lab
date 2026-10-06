@@ -75,6 +75,8 @@ class RunResultService
                     'metrics_json' => array_filter([
                         'summary' => $result['metrics'],
                         'load' => $result['load'] ?? null,
+                        'probes' => isset($result['probes']) ? array_map(fn ($probe) => array_intersect_key($probe, array_flip(['instances', 'pass', 'interval_p95_ms', 'jank_pct'])), $result['probes']) : null,
+                        'flags' => $result['flags'] ?? null,
                     ]),
                     'samples_json' => $result['samples'] ?? null,
                 ]);
@@ -188,6 +190,9 @@ class RunResultService
             }
             if (! isset($result['asset_id']) && $test->scenario !== 'mixed') {
                 $errors["results.{$index}.asset_id"] = 'Each result needs its asset.';
+            }
+            if ($test->method === 'headroom' && ! isset($result['metrics']['headroom_instances'])) {
+                $errors["results.{$index}.metrics.headroom_instances"] = 'A Headroom result needs its headroom value.';
             }
             if ($test->method === 'stress' && ! in_array((int) ($result['step_instances'] ?? 0), $test->configuration_json['steps'] ?? [], true)) {
                 $errors["results.{$index}.step_instances"] = 'This instance count is not one of the test steps.';

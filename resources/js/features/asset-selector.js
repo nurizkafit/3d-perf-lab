@@ -82,11 +82,13 @@ export default (max = 8) => ({
     },
 
     async showPreview(asset) {
-        if (this.previewAsset?.id === asset.id || !this.$root.open) return;
+        // Read $root before the await: Alpine magics do not resolve after it. $refs does not resolve from the x-for
+        // row scope either, so the stage is looked up from the dialog.
+        const root = this.$root;
+        if (this.previewAsset?.id === asset.id || !root.open) return;
         this.previewAsset = asset;
         const { createViewer } = await import('../three/viewer.js');
-        // $refs does not resolve from the x-for row scope; look the stage up from the dialog.
-        this.viewer ??= createViewer(this.$root.querySelector('[data-selector-preview]'), { mode: 'preview' });
+        this.viewer ??= createViewer(root.querySelector('[data-selector-preview]'), { mode: 'preview' });
         this.viewer.load(asset.file_url);
     },
 

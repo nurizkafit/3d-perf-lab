@@ -27,8 +27,10 @@ class CreateTestRequest extends FormRequest
             'asset_ids.*' => ['integer', 'distinct', Rule::exists('assets', 'id')->whereNull('deleted_at')],
             'configuration' => ['required', 'array'],
             'configuration.repetitions' => ['required', 'integer', 'between:1,5'],
-            'configuration.warmup_s' => ['required', 'numeric', 'between:1,10'],
-            'configuration.measurement_s' => ['required', 'numeric', 'between:5,30'],
+            // Headroom probes use fixed timings (1 s warm-up, 4 s window; BENCHMARK.md §4.4).
+            'configuration.warmup_s' => [Rule::requiredIf(fn () => $this->input('method') !== 'headroom'), 'nullable', 'numeric', 'between:1,10'],
+            'configuration.measurement_s' => [Rule::requiredIf(fn () => $this->input('method') !== 'headroom'), 'nullable', 'numeric', 'between:5,30'],
+            'configuration.cap' => [Rule::requiredIf(fn () => $this->input('method') === 'headroom'), 'nullable', 'integer', 'between:1,4096'],
             'configuration.animation' => ['boolean'],
             'configuration.resolution_id' => $preset('resolution'),
             'configuration.camera_id' => $preset('camera'),

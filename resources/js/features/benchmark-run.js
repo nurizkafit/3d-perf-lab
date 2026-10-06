@@ -5,6 +5,7 @@ import { apiFetch } from '../api.js';
 const RUNNERS = {
     comparison: () => import('../three/methods/comparison.js').then((m) => m.runComparison),
     stress: () => import('../three/methods/stress.js').then((m) => m.runStress),
+    headroom: () => import('../three/methods/headroom.js').then((m) => m.runHeadroom),
 };
 
 export function initBenchmarkRun(root) {

@@ -110,6 +110,7 @@ export default () => ({
                         animation: c.animation === '1',
                         resolution_id: toNumber(c.resolution_id), camera_id: toNumber(c.camera_id), lighting_id: toNumber(c.lighting_id), background_id: toNumber(c.background_id),
                         ...(this.config.method === 'stress' ? { steps: this.parsedSteps } : {}),
+                        ...(this.config.method === 'headroom' ? { cap: toNumber(c.cap) } : {}),
                     },
                     budget: { preset_id: toNumber(form.budget?.preset_id), items },
                 },

@@ -26,8 +26,8 @@
         <div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
             <x-ui.card :href="route('assets.upload')" size="sm" class="flex items-center gap-3"><x-ui.icon name="upload-simple" size="md" /><span class="font-semibold">Upload assets</span></x-ui.card>
             <x-ui.card :href="route('lab.comparison')" size="sm" class="flex items-center gap-3"><x-ui.icon name="columns" size="md" /><span class="font-semibold">New Comparison Test</span></x-ui.card>
-            <div class="card flex items-center gap-3 text-neutral-600" data-size="sm" aria-disabled="true"><x-ui.icon name="stack" size="md" /><span><span class="font-semibold">New Stress Test</span><br><span class="text-body-sm">Coming in M4.3</span></span></div>
-            <div class="card flex items-center gap-3 text-neutral-600" data-size="sm" aria-disabled="true"><x-ui.icon name="gauge" size="md" /><span><span class="font-semibold">New Headroom Test</span><br><span class="text-body-sm">Coming in M4.4</span></span></div>
+            <x-ui.card :href="route('lab.stress')" size="sm" class="flex items-center gap-3"><x-ui.icon name="stack" size="md" /><span class="font-semibold">New Stress Test</span></x-ui.card>
+            <x-ui.card :href="route('lab.headroom')" size="sm" class="flex items-center gap-3"><x-ui.icon name="gauge" size="md" /><span class="font-semibold">New Headroom Test</span></x-ui.card>
         </div>
     </section>
 

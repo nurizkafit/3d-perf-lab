@@ -8,9 +8,9 @@ The agent updates this file at each milestone boundary and after each decision. 
 
 | Item              | Value                                   |
 | ----------------- | --------------------------------------- |
-| Current milestone | M4.3 — Stress Test                      |
-| Status            | Completed — waiting for user review; M4.4 not started. Phone self-test (M4.1) still to be run by the user |
-| Last updated      | 2026-10-03                              |
+| Current milestone | M4.4 — Headroom Test                    |
+| Status            | Completed — waiting for user review (M4.3 also not yet reviewed); M4.5 not started. Phone self-test (M4.1) still to be run by the user |
+| Last updated      | 2026-10-06                              |
 
 ---
 
@@ -68,6 +68,44 @@ These decisions were made by the user during the specification review. They are 
 ---
 
 ## History
+
+## 2026-10-06 — M4.4 Headroom Test — completed
+
+**Scope:** `BENCHMARK.md` §4.4 — doubling + binary search, pass criterion (p95 and jank), cap, 3-minute time limit per search, repeated and mixed scenarios, results with a headroom bar chart and the probe sequence chart. Built at the user's request before the M4.3 review.
+
+**Done:**
+- Search `three/methods/headroom-search.js` (`searchHeadroom`, `probePasses`), free of Three.js and the DOM so it runs under Node: probe at 1 (fail → 0); double up to the cap (a cap that is not a power of two is probed exactly); binary search until the gap ≤ max(1, 5% of the last pass); the time limit is checked before each probe after the first and keeps the last pass. Unit tests in `tests/js/headroom-search.test.mjs` (`npm run test:js`, Node's built-in test runner, no new dependency).
+- Runner `three/methods/headroom.js`: one benchmark viewer for the whole run; per repetition and search (repeated: one per asset; mixed: one for the set, round-robin) a cold load, the Stress grid and clones, camera framed once on the grid at the cap count; each probe = GPU upload, 1 s warm-up, 4 s window. Each result stores the summary of the last passing probe, `headroom_instances`, the probe list (instances, pass, p95, jank), and the flags `cap_reached` / `time_limit_reached`. Progress strip names the probe count between windows.
+- Server: `CreateTestRequest` — `configuration.cap` required for Headroom (integer 1–4096); warm-up and measurement inputs not used. `TestSessionService` stores the fixed probe protocol (`probe_warmup_s` 1, `probe_window_s` 4, `time_limit_s` 180, `instance_mode` clone) and rejects a budget without p95 or jank. `SubmitResultsRequest` / `RunResultService` validate and store probes (max 64) and flags; a Headroom result needs `headroom_instances`; `min_headroom_instances` is evaluated on the median.
+- Configuration `/lab/headroom` (shared configure page): scenario switch, cap input (default 1,024), note on the probe protocol. Run page preflight describes the probe protocol for Headroom.
+- Results (`pages/results/partials/headroom`, `TestResultPresenter::headroomGroups()/headroomChart()/budgetColumns()`): headroom per search as median (min–max) or "≥ cap", per-repetition values, "Stopped by" badges (cap reached, time limit, budget failed); budget table (mixed set = one column); uPlot bar chart with printed values in selection order; probe sequence chart per search (log-2 instance axis, filled circle = pass, cross = fail, plus a text key and a probe list with Pass/Fail badges — never color only).
+- Sidebar, Lab page, and dashboard quick actions link to the Headroom Test.
+- Fix (found during the M4.4 browser run): the asset selector's hover preview read `this.$root` after an `await`, which Alpine does not resolve there ("Cannot read properties of undefined (reading 'querySelector')"). It now reads `$root` before the await.
+
+**Decisions:**
+- Both pass-criterion budget items must be enabled with a limit; the probe uses `max_p95_frame_ms` as the budget frame time for jank — follows from `BENCHMARK.md` §4.4, written there — agent-routine.
+- Probe protocol (1 s / 4 s / 3 min) is fixed, not editable in the form — as written in `BENCHMARK.md` §4.4 — agent-routine.
+- Each result row keeps the frame summary of the last passing probe (or of probe 1 when it fails), so the page can show context metrics — agent-routine.
+- JS unit tests use Node's built-in `node --test` (no package) — agent-routine.
+
+**Checks:**
+- `php artisan test`: 180 passed (897 assertions). New `HeadroomTest` (10): fixed probe protocol stored; cap required and ≤ 4096; jank item required; mixed needs one tool; probes and flags stored, median headroom evaluated (880/900/1024 → 900 pass; 30/32/34 → 32 fail), load items not evaluated; result without `headroom_instances` rejected; results page ("≥ 1,024", "Cap reached (1,024)", "Time limit (3 min)", "42 (40–44)", probe list, probe chart, selection order); mixed set = one search and one column; run page preflight; configuration page.
+- `npm run test:js`: 7 passed (fail at 1 → 0, doubling + binary search gap, 5% gap, cap stop and flag, non-power-of-two cap, time-limit stop keeps the last pass, pass criterion).
+- **End to end (verification environment, headless Chrome, Apple M2, 60 Hz):**
+  - Run 318: Simple Triangle vs Apel, cap 64 → both "≥ 64", **"Cap reached (64)" recorded and shown**, `renderers_created: 1`.
+  - Run 319: Apel, cap 4,096, 2 repetitions → 13 probes each, "≥ 4,096", cap flag recorded.
+  - Run on Ayam with p95 ≤ 16 ms (below the 16.7 ms frame interval) → probe 1 fails, headroom 0, "Budget failed", Fail badge, cross marker on the probe chart.
+- `/lab/headroom`, two results pages, and the Headroom run page at 1440/820/384: no horizontal page scroll, no console errors. Keyboard: scenario switch by arrow keys; Tab goes Repetitions → Cap; the probe list opens with Enter. Selector hover preview renders. Entry bundle has no Three.js; no `px` design values or raw colors; Pint passed; build succeeded.
+
+**Issues:**
+- Acceptance "a light fixture reaches a higher headroom than a heavy fixture" is **not shown**: the fixtures are too light (largest 112 triangles), and on this machine every fixture reaches the 4,096 cap. Needs a heavier asset (for example a textured model with tens of thousands of triangles) on the user's device.
+- The time-limit stop was verified in unit and feature tests only, not in a real browser run (a 3-minute search did not happen with the fixtures).
+- Verification run 312 was left `running` by a failed script attempt; it expires after 30 minutes (verification database only).
+- Open from earlier: p95 seed limit 16.7 ms on 60 Hz displays (methodology decision); phone self-test (M4.1).
+
+**Files:** `resources/js/three/methods/{headroom,headroom-search}.js`, `resources/js/features/{benchmark-run,lab-config,results,asset-selector}.js`, `app/Http/Requests/Lab/{CreateTestRequest,SubmitResultsRequest}.php`, `app/Services/{TestSessionService,RunResultService}.php`, `app/Support/TestResultPresenter.php`, `app/Http/Controllers/Lab/LabController.php`, `routes/web.php`, `resources/views/pages/lab/{configure,index,run}.blade.php`, `resources/views/pages/results/{show,partials/headroom}.blade.php`, `resources/views/pages/dashboard/index.blade.php`, `resources/views/components/navigation/sidebar.blade.php`, `tests/Feature/{HeadroomTest,AppScreensTest}.php`, `tests/js/headroom-search.test.mjs`, `package.json`, `docs/BENCHMARK.md`.
+
+**Next:** M4.5 — Results, reports, publishing (not started).
 
 ## 2026-10-04 — M4.3 Stress Test — completed
 

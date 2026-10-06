@@ -4,10 +4,12 @@
     $intro = [
         'comparison' => 'N assets, N independent viewers, run one at a time. How does each asset load and render on its own?',
         'stress' => 'N instances in one scene, at fixed instance steps. How does performance change as the count increases?',
+        'headroom' => 'Instances increase automatically until the frame budget fails. How many instances can this device hold inside the budget?',
     ][$method];
     $assetHelp = [
         'comparison' => 'Select 1 to 8 registered assets. The run order is shuffled; results keep this order.',
         'stress' => 'Repeated: one asset, cloned at every step. Mixed: 2 to 8 assets from one authoring tool, placed round-robin in selection order.',
+        'headroom' => 'Repeated: each selected asset (1 to 8) gets its own search. Mixed: 2 to 8 assets from one authoring tool share one search, placed round-robin.',
     ][$method];
 @endphp
 <x-layouts::app :title="$label" :description="$intro" :sample="false">
@@ -18,7 +20,7 @@
             <x-ui.input name="name" label="Test name" :value="$label.' — '.now()->format('Y-m-d H:i')" required maxlength="150" />
         </div>
 
-        @if ($method === 'stress')
+        @if (in_array($method, ['stress', 'headroom']))
             <fieldset class="card space-y-3" data-size="sm">
                 <legend class="field-label">Scenario</legend>
                 <div class="flex flex-wrap gap-2" role="radiogroup">
@@ -56,8 +58,13 @@
         <x-performance.step-card number="2" title="Settings" description="Defaults follow the benchmark protocol (BENCHMARK.md §4.2).">
             <div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))]">
                 <x-ui.input name="configuration[repetitions]" id="repetitions" label="Repetitions" type="number" min="1" max="5" value="3" hint="1–5" required />
-                <x-ui.input name="configuration[warmup_s]" id="warmup" label="Warm-up (s)" type="number" min="1" max="10" step="1" value="2" hint="1–10" required />
-                <x-ui.input name="configuration[measurement_s]" id="measurement" label="Measurement (s)" type="number" min="5" max="30" step="1" value="10" hint="5–30" required />
+                @if ($method === 'headroom')
+                    <x-ui.input name="configuration[cap]" id="cap" label="Cap (instances)" type="number" min="1" max="4096" step="1" value="1024" hint="Default 1,024, at most 4,096. Reaching the cap records ≥ cap." required />
+                    <p class="text-body-sm text-neutral-600 sm:col-span-2">Each probe: 1 s warm-up and a 4 s window. A search stops after 3 minutes and keeps the last passing count. A probe passes when its p95 frame interval and jank meet the budget.</p>
+                @else
+                    <x-ui.input name="configuration[warmup_s]" id="warmup" label="Warm-up (s)" type="number" min="1" max="10" step="1" value="2" hint="1–10" required />
+                    <x-ui.input name="configuration[measurement_s]" id="measurement" label="Measurement (s)" type="number" min="5" max="30" step="1" value="10" hint="5–30" required />
+                @endif
                 @if ($method === 'stress')
                     <div class="sm:col-span-2">
                         <label for="steps-preset" class="field-label">Instance steps preset</label>

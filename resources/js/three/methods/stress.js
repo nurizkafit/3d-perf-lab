@@ -17,7 +17,7 @@ export function gridPositions(count, spacing) {
 }
 
 /** Instances assigned round-robin in selection order (mixed), or all from one asset (repeated). */
-function buildInstances(sources, count, spacing) {
+export function buildInstances(sources, count, spacing) {
     const group = new Group();
     gridPositions(count, spacing).forEach((position, i) => {
         const source = sources[i % sources.length];

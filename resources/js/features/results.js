@@ -13,6 +13,8 @@ const PHASES = [
 const COLORS = () => [token('primary-base'), token('neutral-800'), token('primary-light'), token('neutral-600')];
 
 const width = (el) => Math.max(el.clientWidth, 260);
+/** Whole-number tick steps: instance counts and probe numbers are integers. */
+const INTEGER_INCRS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
 
 /** Stacked bars: each series is the cumulative sum, drawn back to front. */
 function loadChart(el, data, phase) {
@@ -129,8 +131,98 @@ function stressChart(el, data) {
     }, values, el);
 }
 
+/** Headroom bars in selection order with the value printed on each bar (BENCHMARK.md §4.4). */
+function headroomBars(el, data) {
+    const x = data.groups.map((_, i) => i);
+    const names = data.groups.map((g) => g.label);
+    const values = data.groups.map((g) => g.median ?? 0);
+    const ink = token('neutral-950');
+
+    return new uPlot({
+        width: width(el),
+        height: 260,
+        scales: { x: { time: false, range: [-0.5, x.length - 0.5] }, y: { range: (u, min, max) => [0, Math.max(max, 1) * 1.2] } },
+        axes: [{ values: (u, ticks) => ticks.map((t) => names[t] ?? ''), splits: () => x }, { label: 'Instances', incrs: INTEGER_INCRS }],
+        series: [{}, { label: 'Headroom', fill: token('primary-base'), stroke: token('primary-base'), paths: uPlot.paths.bars({ size: [0.5, 80] }), points: { show: false } }],
+        legend: { show: false },
+        hooks: {
+            draw: [(u) => {
+                const { ctx } = u;
+                ctx.save();
+                ctx.fillStyle = ink;
+                ctx.textAlign = 'center';
+                ctx.font = `700 ${13 * devicePixelRatio}px system-ui`;
+                data.groups.forEach((g, i) => ctx.fillText(g.display, u.valToPos(i, 'x', true), u.valToPos(values[i], 'y', true) - 8 * devicePixelRatio));
+                ctx.restore();
+            }],
+        },
+    }, [x, values], el);
+}
+
+/**
+ * Probe sequence: probe number on X, instance count on Y. Pass = filled circle, fail = cross (shape),
+ * plus a "Pass"/"Fail" legend: never color only (BENCHMARK.md §4.4).
+ */
+function probeChart(el, group) {
+    const series = group.repetitions;
+    const longest = Math.max(1, ...series.map((r) => r.probes.length));
+    const x = Array.from({ length: longest }, (_, i) => i + 1);
+    const lines = [token('primary-base'), token('neutral-800'), token('primary-light'), token('neutral-600'), token('primary-dark')];
+    const dashes = [[], [6, 4], [2, 3], [8, 3, 2, 3], [1, 2]];
+    const columns = series.map((r) => x.map((_, i) => r.probes[i]?.instances ?? null));
+
+    const chart = new uPlot({
+        width: width(el),
+        height: 240,
+        scales: { x: { time: false, range: [0.5, longest + 0.5] }, y: { distr: 3, log: 2 } },
+        axes: [{ label: 'Probe', incrs: INTEGER_INCRS }, { label: 'Instances' }],
+        legend: { live: false },
+        series: [{}, ...series.map((r, i) => ({ label: `Repetition ${r.repetition}`, stroke: lines[i % lines.length], dash: dashes[i % dashes.length], width: 1.5, points: { show: false } }))],
+        hooks: {
+            draw: [(u) => {
+                const { ctx } = u;
+                const r = 5 * devicePixelRatio;
+                ctx.save();
+                series.forEach((rep, s) => rep.probes.forEach((probe, i) => {
+                    const cx = u.valToPos(i + 1, 'x', true);
+                    const cy = u.valToPos(probe.instances, 'y', true);
+                    ctx.strokeStyle = lines[s % lines.length];
+                    ctx.fillStyle = lines[s % lines.length];
+                    ctx.lineWidth = 2 * devicePixelRatio;
+                    if (probe.pass) {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.moveTo(cx - r, cy - r);
+                        ctx.lineTo(cx + r, cy + r);
+                        ctx.moveTo(cx + r, cy - r);
+                        ctx.lineTo(cx - r, cy + r);
+                        ctx.stroke();
+                    }
+                }));
+                ctx.restore();
+            }],
+        },
+    }, [x, ...columns], el);
+
+    const key = document.createElement('p');
+    key.className = 'text-body-sm text-neutral-600';
+    key.textContent = '● Pass (filled circle) · ✕ Fail (cross). The probe list below names each result.';
+    el.after(key);
+
+    return chart;
+}
+
 export function initResults(root) {
     const data = JSON.parse(document.getElementById('results-charts').textContent);
+    if (data.headroom?.groups) {
+        headroomBars(root.querySelector('[data-chart="headroom-bars"]'), data.headroom);
+        root.querySelectorAll('[data-chart="probes"]').forEach((el) => probeChart(el, data.headroom.groups[Number(el.dataset.index)]));
+
+        return;
+    }
     if (data.stress?.instances) {
         stressChart(root.querySelector('[data-chart="stress"]'), data.stress);
 

@@ -49,6 +49,15 @@ class SubmitResultsRequest extends FormRequest
                 $rules["results.*.load.{$phase}.{$key}"] = ['nullable', 'numeric', 'min:0'];
             }
         }
+        // Headroom (BENCHMARK.md §4.4): the probe sequence and the stop flags of each search.
+        $rules['results.*.probes'] = ['nullable', 'array', 'max:64'];
+        $rules['results.*.probes.*.instances'] = ['required', 'integer', 'between:1,4096'];
+        $rules['results.*.probes.*.pass'] = ['required', 'boolean'];
+        $rules['results.*.probes.*.interval_p95_ms'] = ['nullable', 'numeric', 'min:0'];
+        $rules['results.*.probes.*.jank_pct'] = ['nullable', 'numeric', 'min:0'];
+        $rules['results.*.flags'] = ['nullable', 'array'];
+        $rules['results.*.flags.cap_reached'] = ['boolean'];
+        $rules['results.*.flags.time_limit_reached'] = ['boolean'];
         foreach (['interval', 'work', 'gpu'] as $series) {
             $rules["results.*.samples.{$series}"] = ['nullable', 'array', 'max:'.self::MAX_SAMPLES];
             $rules["results.*.samples.{$series}.*"] = ['nullable', 'numeric', 'min:0'];

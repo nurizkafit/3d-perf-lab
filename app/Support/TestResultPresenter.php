@@ -58,13 +58,14 @@ class TestResultPresenter
         if (! $this->completed()) {
             return [];
         }
-        $byAsset = $this->run->evaluations->groupBy('asset_id');
+        $byAsset = $this->run->evaluations->whereNull('step_instances')->groupBy(fn ($e) => $e->asset_id ?? 'set');
+        $columns = $this->test->scenario === 'mixed' ? ['set'] : $this->test->assets->pluck('id')->all();
         $rows = [];
         foreach (MetricDefinitions::BUDGET_ITEMS as $key => $definition) {
             $cells = [];
             $limit = null;
-            foreach ($this->test->assets as $asset) {
-                $evaluation = $byAsset->get($asset->id)?->firstWhere('item_key', $key);
+            foreach ($columns as $column) {
+                $evaluation = $byAsset->get($column)?->firstWhere('item_key', $key);
                 if ($evaluation) {
                     $limit = $evaluation->limit_value;
                     $cells[] = [str_replace('_', '-', $evaluation->outcome), $evaluation->measured_value];
@@ -202,6 +203,9 @@ class TestResultPresenter
             'Background' => $c['background']['name'] ?? null,
             'Scenario' => $this->test->scenario ? ucfirst($this->test->scenario).($this->test->scenario === 'mixed' ? ' assets (one tool)' : ' asset') : null,
             'Instance steps' => isset($c['steps']) ? implode(' / ', $c['steps']) : null,
+            'Cap' => isset($c['cap']) ? number_format($c['cap']).' instances' : null,
+            'Probe' => isset($c['probe_window_s']) ? $c['probe_warmup_s'].' s warm-up, '.$c['probe_window_s'].' s window' : null,
+            'Search time limit' => isset($c['time_limit_s']) ? ($c['time_limit_s'] / 60).' min' : null,
             'Instance mode' => $c['instance_mode'] ?? null,
             'Budget preset' => $this->test->budget_json['preset_name'] ?? null,
         ], fn ($value) => $value !== null);
@@ -278,5 +282,66 @@ class TestResultPresenter
         $passing = $rows->where('outcome', 'pass');
 
         return $passing->isEmpty() ? 0 : (int) $passing->max('step_instances');
+    }
+
+    // ---------- Headroom (BENCHMARK.md §4.4) ----------
+
+    /** Column headers for the budget table: assets, or the asset set for a mixed scenario. */
+    public function budgetColumns(): array
+    {
+        if ($this->test->scenario === 'mixed') {
+            $tools = $this->test->assets->pluck('tool.name')->unique()->join(', ');
+
+            return [['name' => 'Mixed set', 'tool' => $tools, 'format' => $this->test->assets->count().' assets', 'author' => $this->test->assets->pluck('name')->join(', ')]];
+        }
+
+        return $this->test->assets->map(fn ($a) => ['name' => $a->name, 'tool' => $a->tool->name, 'format' => strtoupper($a->format), 'author' => $a->author])->all();
+    }
+
+    /** One group per search: each asset (repeated) or the asset set (mixed). */
+    public function headroomGroups(): array
+    {
+        if (! $this->completed()) {
+            return [];
+        }
+        $cap = $this->test->configuration_json['cap'] ?? null;
+        $groups = $this->test->scenario === 'mixed'
+            ? [['key' => null, 'label' => 'Mixed set: '.$this->test->assets->pluck('name')->join(', ')]]
+            : $this->test->assets->map(fn ($a) => ['key' => $a->id, 'label' => $a->name])->all();
+
+        return array_map(function ($group) use ($cap) {
+            $results = $this->run->results->where('asset_id', $group['key'])->sortBy('repetition')->values();
+            $headroom = Aggregate::summary($results->map(fn ($r) => $r->metrics_json['summary']['headroom_instances'] ?? null)->all());
+            $capReached = $results->contains(fn ($r) => $r->metrics_json['flags']['cap_reached'] ?? false);
+
+            return $group + [
+                'headroom' => $headroom,
+                'display' => $headroom === null ? '—' : (($capReached && $headroom['median'] >= $cap) ? '≥ '.self::number($cap, 0) : self::spread($headroom, 0)),
+                'cap_reached' => $capReached,
+                'time_limit_reached' => $results->contains(fn ($r) => $r->metrics_json['flags']['time_limit_reached'] ?? false),
+                'repetitions' => $results->map(fn ($r) => [
+                    'repetition' => $r->repetition,
+                    'headroom' => $r->metrics_json['summary']['headroom_instances'] ?? null,
+                    'cap_reached' => $r->metrics_json['flags']['cap_reached'] ?? false,
+                    'time_limit_reached' => $r->metrics_json['flags']['time_limit_reached'] ?? false,
+                    'probes' => $r->metrics_json['probes'] ?? [],
+                ])->all(),
+            ];
+        }, $groups);
+    }
+
+    public function headroomChart(): array
+    {
+        $groups = $this->headroomGroups();
+
+        return [
+            'cap' => $this->test->configuration_json['cap'] ?? null,
+            'groups' => array_map(fn ($g) => [
+                'label' => $g['label'],
+                'median' => $g['headroom']['median'] ?? null,
+                'display' => $g['display'],
+                'repetitions' => array_map(fn ($r) => ['repetition' => $r['repetition'], 'probes' => array_map(fn ($p) => ['instances' => $p['instances'], 'pass' => (bool) $p['pass']], $r['probes'])], $g['repetitions']),
+            ], $groups),
+        ];
     }
 }

@@ -166,6 +166,8 @@ Goal: one comparable number for each asset on each device — the largest instan
 
 Pass criterion for one probe: `interval_p95_ms ≤ budget.max_p95_frame_ms` **and** `jank_pct ≤ budget.max_jank_pct`.
 
+Both budget items must be enabled with a limit: the server rejects a Headroom Test without them. In each probe the jank threshold (2 × budget frame time) uses `max_p95_frame_ms` as the budget frame time.
+
 Search procedure (per asset, or per asset set for mixed):
 
 1. Probe at 1. If it fails, the result is `0` (fails at one instance).

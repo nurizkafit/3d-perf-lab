@@ -15,12 +15,11 @@
             </x-ui.card>
         </li>
         <li>
-            <div class="card flex h-full flex-col gap-3 text-neutral-600" aria-disabled="true">
+            <x-ui.card :href="route('lab.headroom')" class="flex h-full flex-col gap-3">
                 <x-ui.icon name="gauge" size="md" />
                 <h2 class="text-h3 font-semibold">Headroom Test</h2>
-                <p class="text-body-sm">Instances increase until the frame budget fails. How many can this device hold?</p>
-                <x-ui.badge variant="outline" class="mt-auto w-fit">Coming in M4.4</x-ui.badge>
-            </div>
+                <p class="text-body-sm text-neutral-600">Instances increase until the frame budget fails. How many can this device hold?</p>
+            </x-ui.card>
         </li>
     </ul>
 </x-layouts::app>

@@ -71,6 +71,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::view('/lab', 'pages.lab.index')->name('lab.index');
     Route::get('/lab/comparison', [LabController::class, 'comparison'])->name('lab.comparison');
     Route::get('/lab/stress', [LabController::class, 'stress'])->name('lab.stress');
+    Route::get('/lab/headroom', [LabController::class, 'headroom'])->name('lab.headroom');
     Route::get('/lab/runs/{run}', [RunController::class, 'show'])->name('lab.run');
 
     // Lab JSON endpoints: session auth + CSRF (PRD.md §13).

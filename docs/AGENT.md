@@ -193,6 +193,7 @@ The user's local working data is production data to the agent.
 
 - Feature tests pass for every new route, policy, and validation rule.
 - `npm run build` succeeds; check that the entry bundle does not contain Three.js.
+- `npm run test:js` passes (unit tests for pure benchmark logic in `tests/js/`, Node built-in test runner).
 - Browser check of each new screen at phone (≈ 24rem wide), tablet, and desktop widths.
 - Keyboard check of each new interactive component.
 - No `px` design values outside the exceptions in `DESIGN.md` §4.

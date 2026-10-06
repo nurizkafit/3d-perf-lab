@@ -24,6 +24,11 @@ class LabController extends Controller
         return $this->configure($request, 'stress');
     }
 
+    public function headroom(Request $request): View
+    {
+        return $this->configure($request, 'headroom');
+    }
+
     /** One configuration page for every method; method-specific steps are switched in the view. */
     private function configure(Request $request, string $method): View
     {

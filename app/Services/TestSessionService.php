@@ -47,6 +47,17 @@ class TestSessionService
             $configuration['instance_mode'] = 'clone'; // InstancedMesh mode is a later version (BENCHMARK.md §8.4)
         }
 
+        if ($data['method'] === 'headroom') {
+            $configuration = array_merge($configuration, [
+                'cap' => (int) $configuration['cap'],
+                'probe_warmup_s' => 1,
+                'probe_window_s' => 4,
+                'time_limit_s' => 180,
+                'instance_mode' => 'clone',
+            ]);
+            unset($configuration['warmup_s'], $configuration['measurement_s']);
+        }
+
         $preset = BudgetPreset::findOrFail($data['budget']['preset_id']);
         $items = [];
         foreach (MetricDefinitions::BUDGET_ITEMS as $key => $definition) {
@@ -54,6 +65,15 @@ class TestSessionService
             $items[$key] = $override !== null
                 ? ['enabled' => (bool) $override['enabled'], 'limit' => $override['limit'] === null ? null : (float) $override['limit']]
                 : ($preset->items_json[$key] ?? ['enabled' => false, 'limit' => null]);
+        }
+
+        // The headroom pass criterion needs both limits (BENCHMARK.md §4.4).
+        if ($data['method'] === 'headroom') {
+            foreach (['max_p95_frame_ms' => 'p95 frame interval', 'max_jank_pct' => 'jank'] as $key => $label) {
+                if (! ($items[$key]['enabled'] ?? false) || $items[$key]['limit'] === null) {
+                    throw ValidationException::withMessages(["budget.items.{$key}" => "The Headroom Test needs the {$label} budget item: it is part of the pass criterion."]);
+                }
+            }
         }
 
         return DB::transaction(function () use ($user, $data, $configuration, $preset, $items, $toolConstraint) {

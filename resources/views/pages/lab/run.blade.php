@@ -25,8 +25,14 @@
                     <li>On a phone or tablet, connect the charger.</li>
                     <li>Do not touch the page until the run ends.</li>
                 </ul>
-                <p class="text-body-sm">{{ $test->assets->count() }} {{ Str::plural('asset', $test->assets->count()) }} × {{ $test->configuration_json['repetitions'] }} {{ Str::plural('repetition', $test->configuration_json['repetitions']) }},
-                    {{ $test->configuration_json['warmup_s'] }} s warm-up and {{ $test->configuration_json['measurement_s'] }} s measurement each. Device class: {{ $run->deviceClass->name }}.</p>
+                @php($c = $test->configuration_json)
+                <p class="text-body-sm">{{ $test->assets->count() }} {{ Str::plural('asset', $test->assets->count()) }} × {{ $c['repetitions'] }} {{ Str::plural('repetition', $c['repetitions']) }},
+                    @if ($test->method === 'headroom')
+                        cap {{ number_format($c['cap']) }} instances. Each probe: {{ $c['probe_warmup_s'] }} s warm-up and a {{ $c['probe_window_s'] }} s window; each search stops after {{ intdiv($c['time_limit_s'], 60) }} min.
+                    @else
+                        {{ $c['warmup_s'] }} s warm-up and {{ $c['measurement_s'] }} s measurement each.
+                    @endif
+                    Device class: {{ $run->deviceClass->name }}.</p>
                 <x-ui.button icon="play" data-start>Start</x-ui.button>
             </section>
 

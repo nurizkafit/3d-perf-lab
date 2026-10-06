@@ -48,12 +48,14 @@ class AppScreensTest extends TestCase
         $this->get('/admin/options/nope')->assertNotFound();
     }
 
-    public function test_unbuilt_routes_are_disabled_items_not_links(): void
+    public function test_the_sidebar_links_to_all_three_lab_methods(): void
     {
-        $this->get('/dashboard')
-            ->assertSee('Coming in M4.4')
-            ->assertSee('href="'.url('/lab/stress').'"', false)
-            ->assertDontSee('href="'.url('/lab/headroom').'"', false);
+        $response = $this->get('/dashboard');
+
+        foreach (['comparison', 'stress', 'headroom'] as $method) {
+            $response->assertSee('href="'.url("/lab/{$method}").'"', false);
+        }
+        $response->assertDontSee('Coming in M4');
     }
 
     public function test_upload_config_is_passed_as_json_not_inline_script(): void
