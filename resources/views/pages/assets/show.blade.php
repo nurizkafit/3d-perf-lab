@@ -26,7 +26,7 @@
     </x-slot:actions>
 
     @if ($asset->trashed())
-        <p class="alert-box" data-error role="status"><x-ui.icon name="trash" />Deleted on {{ $asset->deleted_at->format('Y-m-d H:i') }}. It is hidden from the library and cannot be selected for new tests. Old results keep it.</p>
+        <p class="alert-box" data-error role="status"><x-ui.icon name="trash" />Deleted on {{ $asset->deleted_at->display()->format('Y-m-d H:i') }}. It is hidden from the library and cannot be selected for new tests. Old results keep it.</p>
     @endif
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -40,7 +40,7 @@
                 <dt class="text-neutral-600">Author</dt><dd>{{ $asset->author }}</dd>
                 <dt class="text-neutral-600">Uploaded by</dt><dd>{{ $asset->uploader->name }}</dd>
                 <dt class="text-neutral-600">Production time</dt><dd class="num">{{ rtrim(rtrim($asset->production_time_hours, '0'), '.') }} h</dd>
-                <dt class="text-neutral-600">Uploaded</dt><dd class="num">{{ $asset->created_at->format('Y-m-d H:i') }}</dd>
+                <dt class="text-neutral-600">Uploaded</dt><dd class="num">{{ $asset->created_at->display()->format('Y-m-d H:i') }}</dd>
             </dl>
             @if ($asset->description)
                 <p class="text-body-sm">{{ $asset->description }}</p>
@@ -64,7 +64,7 @@
             <x-ui.table caption="Tests that used this asset">
                 <x-slot:head><tr><th scope="col">Test</th><th scope="col">Method</th><th scope="col" data-numeric>Date</th></tr></x-slot:head>
                 @foreach ($tests as $test)
-                    <tr><th scope="row" class="font-semibold">{{ $test->name }}</th><td>{{ $methods[$test->method]['label'] }}</td><td data-numeric>{{ $test->created_at->format('Y-m-d') }}</td></tr>
+                    <tr><th scope="row" class="font-semibold">{{ $test->name }}</th><td>{{ $methods[$test->method]['label'] }}</td><td data-numeric>{{ $test->created_at->display()->format('Y-m-d') }}</td></tr>
                 @endforeach
             </x-ui.table>
             @if ($otherTests > 0)<p class="text-body-sm text-neutral-600">Also used in {{ $otherTests }} {{ Str::plural('test', $otherTests) }} by other users.</p>@endif

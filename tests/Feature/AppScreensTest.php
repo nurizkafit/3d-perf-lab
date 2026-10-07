@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
@@ -87,5 +88,14 @@ class AppScreensTest extends TestCase
         $this->get('/dashboard')
             ->assertDontSee('<details', false)
             ->assertSee('Budget presets');
+    }
+
+    public function test_times_are_shown_in_the_display_timezone(): void
+    {
+        config(['lab.display_timezone' => 'Asia/Jakarta']);
+        $this->travelTo(Carbon::parse('2026-10-07 20:30:00', 'UTC'));
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/lab/comparison')->assertOk()->assertSee('Comparison Test — 2026-10-08 03:30');
     }
 }

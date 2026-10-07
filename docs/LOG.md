@@ -44,6 +44,7 @@ These decisions were made by the user during the specification review. They are 
 | D22 | (M0.2) Budget presets link to device classes many-to-many through `budget_preset_device_class`, replacing `budget_presets.device_class_id`                                                               | `PRD.md` §11, §12                      |
 | D23 | (M0.2) Seed one default camera (Auto-frame), lighting (Studio), and background (Neutral, `neutral-100`) preset                                                                                          | `PRD.md` §11                           |
 | D24 | (M0.2) `min_instances_at_budget` is seeded disabled with no limit in all budget presets                                                                                                                  | `BENCHMARK.md` §6.2                    |
+| D38 | Times are stored in UTC and shown in one display zone, `APP_DISPLAY_TIMEZONE` (default `Asia/Jakarta`), for every viewer: default test names, result, asset, upload, user, and report dates. JSON/CSV exports keep UTC | `config/lab.php`, `DEPLOYMENT.md` §4 |
 | D37 | (M4.3) `budget_evaluations.step_instances` (nullable): Stress frame items stored per step; summary items with null | `PRD.md` §12 |
 | D36 | (M4.1, Q4) Chart library: uPlot, loaded with dynamic `import()` | `AGENT.md` §5.2, `DESIGN.md` §10 |
 | D35 | (M4.1) Cold load: unique URL + `cache: 'reload'`; warm load: same URL, default cache (was `no-store`, which made the warm load download again) | `BENCHMARK.md` §3.2 |
@@ -68,6 +69,26 @@ These decisions were made by the user during the specification review. They are 
 ---
 
 ## History
+
+## 2026-10-07 — Fix: dates shown in the local zone (D38) — completed
+
+**Scope:** User report: the default test name showed UTC time instead of local time (WIB, UTC+7).
+**Done:** Cause: `config/app.php` uses `UTC` and every date was formatted in it. New config `lab.display_timezone` (`APP_DISPLAY_TIMEZONE`, default `Asia/Jakarta`) and a Carbon macro `display()` (copy in the display zone) in `AppServiceProvider`. Used for the default test name, "Completed …" on results, asset uploaded/deleted dates, asset test list, library dates, upload session start, last login, and report published dates. Storage stays UTC, so existing rows do not shift.
+**Decisions:** D38 — one fixed display zone for every viewer — user.
+**Checks:** `php artisan test`: 181 passed. New `test_times_are_shown_in_the_display_timezone` (20:30 UTC → default name "… — 2026-10-08 03:30"); last-login test now expects WIB (08:30 UTC → 15:30). Pint passed.
+**Issues:** None.
+**Files:** `config/lab.php`, `app/Providers/AppServiceProvider.php`, views under `resources/views/pages/{lab,results,assets,admin/users,public}` and `components/reports/report-card`, `.env.example`, `.env.verify.example`, `tests/Feature/{AppScreensTest,AdminUsersTest}.php`, `docs/DEPLOYMENT.md`.
+**Next:** User review of M4.3 and M4.4; M4.5 not started.
+
+## 2026-10-07 — Fix: Lab configuration kept across device confirmation — completed
+
+**Scope:** User report: confirming the device class on a Lab configuration page cleared the selected assets.
+**Done:** Cause: "Confirm or change" and the top-bar device chip open `/device`, which returns to a freshly loaded configuration page; the state lived only in Alpine. `features/lab-config.js` now saves a draft to `sessionStorage` (this tab only) when a link to `/device` is clicked, and restores it once on return: assets in their order, scenario, instance steps, test name, repetitions, timings, cap, scene presets, animation, and the budget (only when the user changed it; otherwise the preset suggested for the newly confirmed class applies). The draft is read once and removed, so a later reload starts empty as before. Works on Comparison, Stress, and Headroom.
+**Decisions:** Draft in `sessionStorage`, not the server — a per-tab convenience, no data model change — agent-routine (bug fix).
+**Checks:** Browser (verification environment): Headroom via "Confirm or change" and Stress via the top-bar chip — mixed scenario, Apel + Ayam, repetitions 2, cap 256, jank limit 7 → all restored after confirming "Desktop — Dedicated GPU"; a reload afterwards starts empty; no console errors. Build succeeded.
+**Issues:** None.
+**Files:** `resources/js/features/lab-config.js`.
+**Next:** User review of M4.3 and M4.4; M4.5 not started.
 
 ## 2026-10-06 — M4.4 Headroom Test — completed
 

@@ -15,6 +15,10 @@ return [
     // Abandoned staged uploads are deleted after this many days (PRD.md §7.1).
     'staging_retention_days' => (int) env('STAGING_RETENTION_DAYS', 7),
 
+    // Times are stored in UTC (config/app.php) and shown in this zone: default test names, dates on screens and
+    // reports. One zone for every viewer (decision D38).
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Jakarta'),
+
     // A run that has not submitted results expires this many minutes after start (BENCHMARK.md §5).
     'run_expiry_minutes' => 30,
 

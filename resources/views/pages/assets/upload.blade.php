@@ -15,7 +15,7 @@
     $maxLabel = \Illuminate\Support\Number::fileSize($maxBytes, maxPrecision: 1);
     $open = ! $session || $session->status === 'open';
 @endphp
-<x-layouts::app :title="$session ? 'Upload session' : 'Upload assets'" :description="$session ? 'Started '.$session->created_at->format('Y-m-d H:i').'. Every file of this session with its result. Staged rows can still be completed and registered.' : 'Add GLB or GLTF files, complete the metadata, then register them.'" :sample="false">
+<x-layouts::app :title="$session ? 'Upload session' : 'Upload assets'" :description="$session ? 'Started '.$session->created_at->display()->format('Y-m-d H:i').'. Every file of this session with its result. Staged rows can still be completed and registered.' : 'Add GLB or GLTF files, complete the metadata, then register them.'" :sample="false">
     <x-slot:actions>
         @if ($session)
             <x-ui.button :href="route('assets.upload')" variant="secondary" icon="plus">New upload</x-ui.button>

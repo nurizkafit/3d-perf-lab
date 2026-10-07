@@ -22,7 +22,7 @@
                         <x-ui.badge variant="outline" icon="minus-circle">Deactivated</x-ui.badge>
                     @endif
                 </td>
-                <td data-numeric>{{ $user->last_login_at?->format('Y-m-d H:i') ?? 'Never' }}</td>
+                <td data-numeric>{{ $user->last_login_at?->display()->format('Y-m-d H:i') ?? 'Never' }}</td>
                 <td>
                     <div class="flex flex-wrap gap-1">
                         <x-ui.button :href="route('admin.users.edit', $user)" variant="ghost" size="sm" icon="pencil-simple">Edit<span class="sr-only"> {{ $user->name }}</span></x-ui.button>

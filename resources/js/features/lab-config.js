@@ -19,6 +19,20 @@ function formToObject(form) {
 
 const toNumber = (value) => (value === '' || value === undefined ? null : Number(value));
 
+// Draft kept while the user confirms the device class on /device, which reloads this page. sessionStorage: this tab
+// only, a convenience; the page works without it.
+const draftKey = (method) => `lab-draft:${method}`;
+const readDraft = (method) => {
+    try {
+        const raw = sessionStorage.getItem(draftKey(method));
+        sessionStorage.removeItem(draftKey(method));
+
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+};
+
 export default () => ({
     config: {},
     assets: [],
@@ -30,6 +44,60 @@ export default () => ({
     init() {
         this.config = JSON.parse(document.getElementById('lab-config').textContent);
         this.steps = (this.config.defaultSteps ?? []).join(', ');
+        const draft = readDraft(this.config.method);
+        // The budget step initialises after this component; restore once it has.
+        if (draft) this.$nextTick(() => this.restoreDraft(draft));
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href]');
+            if (link && new URL(link.href, location.href).pathname === '/device') this.saveDraft();
+        }, true);
+    },
+
+    budget() {
+        const el = this.$refs.form.querySelector('[x-data="budgetStep"]');
+
+        return el ? window.Alpine.$data(el) : null;
+    },
+
+    saveDraft() {
+        const fields = {};
+        this.$refs.form.querySelectorAll('[name]').forEach((el) => {
+            if (el.name.startsWith('budget[') || el.name === 'scenario' || el.type === 'hidden') return;
+            fields[el.name] = el.type === 'checkbox' ? el.checked : el.value;
+        });
+        const budget = this.budget();
+        // Keep the budget only when the user changed it; otherwise the preset suggested for the confirmed class applies.
+        const budgetChanged = budget && (budget.changed || budget.presetId !== String(budget.config.suggestedId ?? ''));
+        const draft = {
+            assets: this.assets,
+            scenario: this.scenario,
+            steps: this.steps,
+            fields,
+            budget: budgetChanged ? { presetId: budget.presetId, items: budget.items } : null,
+        };
+        try {
+            sessionStorage.setItem(draftKey(this.config.method), JSON.stringify(draft));
+        } catch {
+            // Storage unavailable: the page starts empty, as before.
+        }
+    },
+
+    restoreDraft(draft) {
+        this.assets = draft.assets ?? [];
+        this.scenario = draft.scenario ?? this.scenario;
+        this.steps = draft.steps ?? this.steps;
+        Object.entries(draft.fields ?? {}).forEach(([name, value]) => {
+            const el = this.$refs.form.querySelector(`[name="${CSS.escape(name)}"]:not([type=hidden])`);
+            if (!el) return;
+            if (el.type === 'checkbox') el.checked = Boolean(value);
+            else el.value = value;
+        });
+        const budget = this.budget();
+        if (budget && draft.budget) {
+            budget.presetId = draft.budget.presetId;
+            budget.items = draft.budget.items;
+            budget.changed = true;
+        }
     },
 
     applyStepPreset(id) {

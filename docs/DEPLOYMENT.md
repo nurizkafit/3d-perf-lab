@@ -72,6 +72,7 @@ Production `.env` (template `.env.production.example` is created in M5.2):
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://<domain>
+APP_DISPLAY_TIMEZONE=Asia/Jakarta   # dates are stored in UTC and shown in this zone (LOG.md D38)
 APP_KEY=                       # php artisan key:generate --show (locally), paste here
 
 DB_CONNECTION=mariadb          # or mysql, per Laravel version

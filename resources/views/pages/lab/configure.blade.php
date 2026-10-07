@@ -17,7 +17,7 @@
 
     <form x-data="labConfig" x-ref="form" x-on:assets-selected.window="onSelected($event)" x-on:submit.prevent="run()" class="space-y-6">
         <div class="max-w-md">
-            <x-ui.input name="name" label="Test name" :value="$label.' — '.now()->format('Y-m-d H:i')" required maxlength="150" />
+            <x-ui.input name="name" label="Test name" :value="$label.' — '.now()->display()->format('Y-m-d H:i')" required maxlength="150" />
         </div>
 
         @if (in_array($method, ['stress', 'headroom']))

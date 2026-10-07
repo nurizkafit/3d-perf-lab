@@ -23,10 +23,11 @@ class AdminUsersTest extends TestCase
 
     public function test_the_user_list_shows_role_status_and_last_login(): void
     {
+        config(['lab.display_timezone' => 'Asia/Jakarta']);
         $user = User::factory()->create(['name' => 'Listed Person', 'last_login_at' => '2026-10-01 08:30:00']);
 
         $this->get('/admin/users')->assertOk()
-            ->assertSee('Listed Person')->assertSee($user->email)->assertSee('2026-10-01 08:30');
+            ->assertSee('Listed Person')->assertSee($user->email)->assertSee('2026-10-01 15:30', false); // stored UTC, shown in Asia/Jakarta
     }
 
     public function test_an_admin_creates_a_user_who_can_then_log_in(): void

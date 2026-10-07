@@ -11,7 +11,7 @@
             <h1 class="text-h1 font-bold">{{ $report['title'] }}</h1>
             {{-- The question is the page lead (DESIGN.md §12). --}}
             <p class="max-w-[var(--readable-width)] text-h3 text-neutral-950">{{ $report['question'] }}</p>
-            <p class="text-body-sm text-neutral-600">Published <time datetime="{{ $report['published_at'] }}">{{ \Illuminate\Support\Carbon::parse($report['published_at'])->format('j F Y') }}</time> · Budget preset: {{ $report['budget_preset'] }}</p>
+            <p class="text-body-sm text-neutral-600">Published <time datetime="{{ $report['published_at'] }}">{{ \Illuminate\Support\Carbon::parse($report['published_at'])->display()->format('j F Y') }}</time> · Budget preset: {{ $report['budget_preset'] }}</p>
         </header>
 
         <x-reports.report-section id="budget" label="Budget result" title="Does each asset meet the budget?">

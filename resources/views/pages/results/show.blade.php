@@ -18,11 +18,11 @@
             The last run is {{ $run->status }}{{ $run->invalid_reason ? ': '.$run->invalid_reason : '.' }} Invalid and cancelled runs never produce budget results.</p>
     @else
         @if ($test->method === 'headroom')
-            <p class="text-body-sm" role="status">Completed {{ $run->completed_at->format('Y-m-d H:i') }}. Headroom: {{ collect($result->headroomGroups())->map(fn ($g) => $g['label'].' '.$g['display'])->join(' · ') }}.</p>
+            <p class="text-body-sm" role="status">Completed {{ $run->completed_at->display()->format('Y-m-d H:i') }}. Headroom: {{ collect($result->headroomGroups())->map(fn ($g) => $g['label'].' '.$g['display'])->join(' · ') }}.</p>
         @elseif ($test->method === 'stress')
-            <p class="text-body-sm" role="status">Completed {{ $run->completed_at->format('Y-m-d H:i') }}. Instances at budget: {{ $run->evaluations->firstWhere('item_key', 'min_instances_at_budget')?->measured_value ?? \App\Support\TestResultPresenter::largestPassingStep($run) ?? '—' }}.</p>
+            <p class="text-body-sm" role="status">Completed {{ $run->completed_at->display()->format('Y-m-d H:i') }}. Instances at budget: {{ $run->evaluations->firstWhere('item_key', 'min_instances_at_budget')?->measured_value ?? \App\Support\TestResultPresenter::largestPassingStep($run) ?? '—' }}.</p>
         @else
-            <p class="text-body-sm" role="status">{{ $result->meetingAll() }} of {{ $result->assetCount() }} {{ Str::plural('asset', $result->assetCount()) }} meet all enabled budget items. Completed {{ $run->completed_at->format('Y-m-d H:i') }}.</p>
+            <p class="text-body-sm" role="status">{{ $result->meetingAll() }} of {{ $result->assetCount() }} {{ Str::plural('asset', $result->assetCount()) }} meet all enabled budget items. Completed {{ $run->completed_at->display()->format('Y-m-d H:i') }}.</p>
         @endif
     @endif
 

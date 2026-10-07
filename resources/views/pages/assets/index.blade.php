@@ -133,7 +133,7 @@
                             <td data-numeric>{{ \Illuminate\Support\Number::fileSize($asset->file_size, maxPrecision: 1) }}</td>
                             <td data-numeric>{{ $asset->metrics ? number_format($asset->metrics->triangles) : '—' }}</td>
                             <td>{{ $asset->uploader->name }}</td>
-                            <td data-numeric>{{ $asset->created_at->format('Y-m-d') }}</td>
+                            <td data-numeric>{{ $asset->created_at->display()->format('Y-m-d') }}</td>
                             @if ($v['bulk'])
                                 <td>
                                     @if ($used)

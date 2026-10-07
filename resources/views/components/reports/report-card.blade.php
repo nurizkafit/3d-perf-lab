@@ -11,6 +11,6 @@
     <dl class="mt-auto grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body-sm">
         <dt class="text-neutral-600">Device</dt><dd>{{ $report['device_class'] }}</dd>
         <dt class="text-neutral-600">Assets</dt><dd>{{ count($report['assets']) }}</dd>
-        <dt class="text-neutral-600">Published</dt><dd><time datetime="{{ $report['published_at'] }}">{{ \Illuminate\Support\Carbon::parse($report['published_at'])->format('j M Y') }}</time></dd>
+        <dt class="text-neutral-600">Published</dt><dd><time datetime="{{ $report['published_at'] }}">{{ \Illuminate\Support\Carbon::parse($report['published_at'])->display()->format('j M Y') }}</time></dd>
     </dl>
 </x-ui.card>
