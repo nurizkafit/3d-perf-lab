@@ -48,6 +48,13 @@
                     </select>
                 </div>
                 <div>
+                    <label for="bulk-object" class="field-label">Object</label>
+                    <select id="bulk-object" class="select" x-model="bulk.object_id">
+                        <option value="">Keep current</option>
+                        @foreach ($objects as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
+                    </select>
+                </div>
+                <div>
                     <label for="bulk-hours" class="field-label">Avg. production time (h)</label>
                     <input id="bulk-hours" class="input" type="number" min="0" step="0.25" x-model="bulk.production_time_hours" placeholder="Leave empty to keep">
                 </div>
@@ -62,7 +69,7 @@
             </div>
         </section>
 
-        <x-assets.upload-table :tools="$tools" :can-set-author="$canSetAuthor" />
+        <x-assets.upload-table :tools="$tools" :objects="$objects" :can-set-author="$canSetAuthor" />
 
         <div class="upload-actions" x-show="rows.length > 0" x-cloak>
             <p class="text-body-sm" role="status">

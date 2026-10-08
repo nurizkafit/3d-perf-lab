@@ -16,6 +16,49 @@ class SampleReports
         'headroom' => ['label' => 'Headroom Test', 'icon' => 'gauge'],
     ];
 
+    /**
+     * Budget items of the old methods, for the sample report pages only. The real public reports are rebuilt
+     * with Targets in M4.6 (PROJECT.md); these samples are marked "Sample data".
+     */
+    public const BUDGET_ITEMS = [
+        'max_file_size_mb' => [
+            'label' => 'File size', 'unit' => 'MB', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
+            'help' => 'Size of the model file, including the .bin and texture files of a GLTF.',
+        ],
+        'max_ttff_cold_ms' => [
+            'label' => 'Time to first frame, cold', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison'],
+            'help' => 'Download, parse, GPU upload, and first frame with an empty cache. Median of the repetitions.',
+        ],
+        'max_ttff_warm_ms' => [
+            'label' => 'Time to first frame, warm', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison'],
+            'help' => 'The same load a second time, with the file in the browser cache. Median of the repetitions.',
+        ],
+        'max_p95_frame_ms' => [
+            'label' => 'p95 frame interval', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
+            'help' => '95% of frames arrive within this time; the slowest 5% take longer. Lower is smoother.',
+        ],
+        'max_jank_pct' => [
+            'label' => 'Jank frames', 'unit' => '%', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
+            'help' => 'Share of frames that take more than twice the budget frame time: visible stutter.',
+        ],
+        'max_draw_calls' => [
+            'label' => 'Draw calls', 'unit' => '', 'rule' => '≤', 'methods' => ['comparison', 'stress'],
+            'help' => 'Number of draw commands the renderer sends to the GPU for one frame of the stable scene.',
+        ],
+        'max_texture_memory_mb' => [
+            'label' => 'Texture memory', 'unit' => 'MB', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
+            'help' => 'Estimated GPU memory for the textures (width × height × 4 bytes, more with mipmaps). An estimate, not measured.',
+        ],
+        'min_headroom_instances' => [
+            'label' => 'Headroom instances', 'unit' => '', 'rule' => '≥', 'methods' => ['headroom'],
+            'help' => 'Largest instance count that stays inside the p95 frame and jank limits. Median of the repetitions.',
+        ],
+        'min_instances_at_budget' => [
+            'label' => 'Instances at budget', 'unit' => '', 'rule' => '≥', 'methods' => ['stress'],
+            'help' => 'Largest Stress step that still meets the p95 frame interval limit.',
+        ],
+    ];
+
     /** Standard limitations shown in every report (BENCHMARK.md §9). */
     public const STANDARD_LIMITATIONS = [
         'Results apply to the recorded device and browser only.',

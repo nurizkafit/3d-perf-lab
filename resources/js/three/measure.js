@@ -33,7 +33,7 @@ export function createRunGuard(canvas) {
     window.addEventListener('blur', onBlur);
     window.addEventListener('focus', onFocus);
 
-    /** Watch the canvas of each new renderer (Comparison creates one per asset). */
+    /** Watch the canvas of each new renderer (Side-by-Side creates one per measured asset). */
     guard.watchCanvas = (element) => {
         element.addEventListener('webglcontextlost', onContextLost);
         canvases.add(element);
@@ -111,15 +111,18 @@ function createGpuTimer(renderer) {
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
 /**
- * Render frames for `durationMs` and record frame interval, CPU render work time, and GPU time.
- * @param {{ renderer, scene, camera, durationMs: number, budgetFrameMs: number, guard?: {reason: string|null},
- *           beforeFrame?: (elapsedMs: number) => void }} options  beforeFrame: per-frame camera update hook (no-op in the MVP; Camera Path later)
- * @returns {Promise<{ summary: object, samples: { interval: number[], work: number[], gpu: (number|null)[]|null, truncated: boolean } }>}
+ * Render frames for `durationMs` and record frame interval, CPU render work time, physics time, and GPU time.
+ * @param {{ renderer, scene, camera, durationMs: number, goalFrameMs: number, guard?: {reason: string|null},
+ *           beforeFrame?: (elapsedMs: number) => number|null|void }} options
+ *   goalFrameMs: 1000 / Target fps; a frame slower than twice this is stutter (jank).
+ *   beforeFrame: the motion scenario update (motion.js); returns the physics time in ms, or null.
+ * @returns {Promise<{ summary: object, samples: { interval: number[], work: number[], physics: number[]|null, gpu: (number|null)[]|null, truncated: boolean } }>}
  */
-export async function measureWindow({ renderer, scene, camera, durationMs, budgetFrameMs, guard = { reason: null }, beforeFrame = () => {} }) {
+export async function measureWindow({ renderer, scene, camera, durationMs, goalFrameMs, guard = { reason: null }, beforeFrame = () => null }) {
     const gpu = createGpuTimer(renderer);
     const intervals = [];
     const work = [];
+    const physics = [];
     let frames = 0;
     let truncated = false;
     let previous = null;
@@ -137,7 +140,8 @@ export async function measureWindow({ renderer, scene, camera, durationMs, budge
         }
         previous = timestamp;
 
-        beforeFrame(timestamp - start);
+        const physicsMs = beforeFrame(timestamp - start);
+        if (typeof physicsMs === 'number' && physics.length < MAX_SAMPLES) physics.push(physicsMs);
         gpu?.poll();
         const recordIndex = frames < MAX_SAMPLES ? frames : -1;
         if (recordIndex >= 0) gpu?.begin(recordIndex);
@@ -157,18 +161,25 @@ export async function measureWindow({ renderer, scene, camera, durationMs, budge
     const gpuSamples = gpu ? gpu.samples(Math.min(frames, MAX_SAMPLES)) : null;
 
     return {
-        summary: summarise({ intervals, work, gpu: gpuSamples, budgetFrameMs, renderer, frames }),
-        samples: { interval: intervals.map((v) => round(v)), work: work.map((v) => round(v)), gpu: gpuSamples?.map((v) => round(v)) ?? null, truncated },
+        summary: summarise({ intervals, work, physics, gpu: gpuSamples, goalFrameMs, renderer, frames }),
+        samples: {
+            interval: intervals.map((v) => round(v)),
+            work: work.map((v) => round(v)),
+            physics: physics.length ? physics.map((v) => round(v)) : null,
+            gpu: gpuSamples?.map((v) => round(v)) ?? null,
+            truncated,
+        },
     };
 }
 
 /** Summary values of one window (BENCHMARK.md §3.3 table). */
-export function summarise({ intervals, work, gpu, budgetFrameMs, renderer, frames }) {
+export function summarise({ intervals, work, physics = [], gpu, goalFrameMs, renderer, frames }) {
     const sortedIntervals = [...intervals].sort((a, b) => a - b);
     const sortedWork = [...work].sort((a, b) => a - b);
+    const sortedPhysics = [...physics].sort((a, b) => a - b);
     const gpuValues = gpu?.filter((v) => v !== null).sort((a, b) => a - b) ?? [];
     const slowest = sortedIntervals.slice(-Math.max(1, Math.ceil(sortedIntervals.length * 0.01)));
-    const jankCount = intervals.filter((interval) => interval > 2 * budgetFrameMs).length;
+    const jankCount = intervals.filter((interval) => interval > 2 * goalFrameMs).length;
     const info = renderer.info;
     const heap = performance.memory?.usedJSHeapSize ?? null; // Chromium only: browser-reported, JS heap only
 
@@ -183,6 +194,8 @@ export function summarise({ intervals, work, gpu, budgetFrameMs, renderer, frame
         jank_pct: intervals.length ? round((jankCount / intervals.length) * 100, 3) : null,
         work_p50_ms: round(percentile(sortedWork, 50)),
         work_p95_ms: round(percentile(sortedWork, 95)),
+        physics_p50_ms: sortedPhysics.length ? round(percentile(sortedPhysics, 50)) : null,
+        physics_p95_ms: sortedPhysics.length ? round(percentile(sortedPhysics, 95)) : null,
         gpu_p50_ms: gpuValues.length ? round(percentile(gpuValues, 50)) : null,
         gpu_p95_ms: gpuValues.length ? round(percentile(gpuValues, 95)) : null,
         draw_calls: info.render.calls,
@@ -231,11 +244,12 @@ export async function primeRenderer(renderer, camera) {
 }
 
 /**
- * Warm-up: render without recording (BENCHMARK.md §4.2 step 4). Checks the guard every frame.
+ * Warm-up: render without recording (BENCHMARK.md §4.3, §4.6). Checks the guard every frame.
+ * `until` extends the warm-up until it is true (Physics: until the drop has settled, BENCHMARK.md §4.2).
  */
-export async function warmUp({ renderer, scene, camera, durationMs, guard = { reason: null }, beforeFrame = () => {} }) {
+export async function warmUp({ renderer, scene, camera, durationMs, guard = { reason: null }, beforeFrame = () => null, until = () => true }) {
     const start = performance.now();
-    while (performance.now() - start < durationMs) {
+    while (performance.now() - start < durationMs || !until()) {
         await nextFrame();
         if (guard.reason) throw new InvalidRun(guard.reason);
         beforeFrame(performance.now() - start);

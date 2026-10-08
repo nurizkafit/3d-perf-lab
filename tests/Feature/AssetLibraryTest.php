@@ -52,6 +52,7 @@ class AssetLibraryTest extends TestCase
         $asset = Asset::create($attributes + [
             'name' => 'Asset '.Str::random(4),
             'tool_id' => Tool::where('name', 'Blender')->value('id'),
+            'object_id' => $this->objectId(),
             'author' => 'Author',
             'uploaded_by' => $this->owner->id,
             'production_time_hours' => 1,
@@ -98,6 +99,25 @@ class AssetLibraryTest extends TestCase
         $this->assertEqualsCanonicalizing(['B', 'C'], $this->names('/assets?size_max=1'));
         $this->assertSame(['C'], $this->names('/assets?to=2025-12-31'));
         $this->assertEqualsCanonicalizing(['A', 'B'], $this->names('/assets?from=2026-01-01'));
+    }
+
+    public function test_filters_by_object_and_shows_it(): void
+    {
+        $bird = $this->objectId('Bird');
+        $this->makeAsset(['name' => 'Bird A', 'object_id' => $bird]);
+        $this->makeAsset(['name' => 'Bird B', 'object_id' => $bird]);
+        $this->makeAsset(['name' => 'Chair', 'object_id' => $this->objectId('Chair')]);
+
+        $this->assertEqualsCanonicalizing(['Bird A', 'Bird B'], $this->names("/assets?object={$bird}"));
+        $this->get('/assets?view=table')->assertSee('Bird');
+    }
+
+    public function test_object_is_required_when_editing(): void
+    {
+        $asset = $this->makeAsset();
+
+        $this->actingAs($this->owner)->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => null, 'production_time_hours' => 1])
+            ->assertSessionHasErrors('object_id');
     }
 
     public function test_sort_options(): void
@@ -151,8 +171,8 @@ class AssetLibraryTest extends TestCase
     public function test_detail_lists_only_tests_the_viewer_may_see(): void
     {
         $asset = $this->makeAsset();
-        $mine = TestSession::create(['name' => 'Owner test', 'method' => 'comparison', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->owner->id]);
-        $theirs = TestSession::create(['name' => 'Other test', 'method' => 'stress', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->other->id]);
+        $mine = TestSession::create(['name' => 'Owner test', 'method' => 'side_by_side', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->owner->id]);
+        $theirs = TestSession::create(['name' => 'Other test', 'method' => 'crowd', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->other->id]);
         $asset->testSessions()->attach([$mine->id => ['position' => 1], $theirs->id => ['position' => 1]]);
 
         $this->actingAs($this->owner)->get("/assets/{$asset->id}")->assertSee('Owner test')->assertDontSee('Other test')->assertSee('by other users');
@@ -166,7 +186,7 @@ class AssetLibraryTest extends TestCase
         $asset = $this->makeAsset(['author' => 'Original Author']);
 
         $this->actingAs($this->owner)->put("/assets/{$asset->id}", [
-            'name' => 'Renamed', 'tool_id' => $asset->tool_id, 'author' => 'Hacked Author', 'production_time_hours' => 4, 'description' => 'New text',
+            'name' => 'Renamed', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'Hacked Author', 'production_time_hours' => 4, 'description' => 'New text',
         ])->assertRedirect("/assets/{$asset->id}");
 
         $asset->refresh();
@@ -178,7 +198,7 @@ class AssetLibraryTest extends TestCase
         $asset = $this->makeAsset();
 
         $this->actingAs($this->admin)->put("/assets/{$asset->id}", [
-            'name' => $asset->name, 'tool_id' => $asset->tool_id, 'author' => 'New Author', 'production_time_hours' => 1,
+            'name' => $asset->name, 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'New Author', 'production_time_hours' => 1,
         ])->assertRedirect();
 
         $this->assertSame('New Author', $asset->fresh()->author);
@@ -190,7 +210,7 @@ class AssetLibraryTest extends TestCase
         $this->actingAs($this->other);
 
         $this->get("/assets/{$asset->id}/edit")->assertForbidden();
-        $this->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'production_time_hours' => 1])->assertForbidden();
+        $this->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'production_time_hours' => 1])->assertForbidden();
         $this->delete("/assets/{$asset->id}")->assertForbidden();
         $this->assertFalse($asset->fresh()->trashed());
 
@@ -227,7 +247,7 @@ class AssetLibraryTest extends TestCase
     public function test_permanent_delete_is_blocked_for_an_asset_used_in_a_published_report(): void
     {
         $asset = $this->makeAsset();
-        $test = TestSession::create(['name' => 'Published test', 'method' => 'comparison', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->owner->id]);
+        $test = TestSession::create(['name' => 'Published test', 'method' => 'side_by_side', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->owner->id]);
         $asset->testSessions()->attach($test->id, ['position' => 1]);
         Report::create(['test_session_id' => $test->id, 'title' => 'Public', 'question' => 'Q?', 'status' => 'published', 'public_slug' => 'public-'.Str::random(6), 'published_at' => now(), 'created_by' => $this->owner->id]);
         $asset->delete();
@@ -241,7 +261,7 @@ class AssetLibraryTest extends TestCase
     public function test_permanent_delete_is_blocked_for_an_asset_used_by_any_test(): void
     {
         $asset = $this->makeAsset();
-        $test = TestSession::create(['name' => 'Draft test', 'method' => 'comparison', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->owner->id]);
+        $test = TestSession::create(['name' => 'Draft test', 'method' => 'side_by_side', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->owner->id]);
         $asset->testSessions()->attach($test->id, ['position' => 1]);
 
         $this->actingAs($this->admin)->delete("/assets/{$asset->id}/force")->assertSessionHasErrors('item');
@@ -297,7 +317,7 @@ class AssetLibraryTest extends TestCase
     public function test_bulk_mode_shows_checkboxes_and_marks_assets_used_in_tests(): void
     {
         $used = $this->makeAsset(['name' => 'Used one']);
-        $test = TestSession::create(['name' => 'T', 'method' => 'comparison', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->owner->id]);
+        $test = TestSession::create(['name' => 'T', 'method' => 'side_by_side', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->owner->id]);
         $used->testSessions()->attach($test->id, ['position' => 1]);
         $this->makeAsset(['name' => 'Free one']);
 
@@ -340,7 +360,7 @@ class AssetLibraryTest extends TestCase
     {
         $free = $this->makeAsset(['name' => 'Free']);
         $used = $this->makeAsset(['name' => 'Used']);
-        $test = TestSession::create(['name' => 'T', 'method' => 'comparison', 'configuration_json' => [], 'budget_json' => [], 'created_by' => $this->owner->id]);
+        $test = TestSession::create(['name' => 'T', 'method' => 'side_by_side', 'configuration_json' => [], 'target_json' => [], 'created_by' => $this->owner->id]);
         $used->testSessions()->attach($test->id, ['position' => 1]);
 
         $this->actingAs($this->admin)->delete('/assets/bulk/force', ['ids' => [$free->id, $used->id]])

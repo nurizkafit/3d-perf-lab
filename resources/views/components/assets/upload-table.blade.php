@@ -1,4 +1,4 @@
-@props(['tools', 'canSetAuthor'])
+@props(['tools', 'objects', 'canSetAuthor'])
 {{-- Metadata table for one upload session (PRD.md §7.1, DESIGN.md §9.1). Rows come from the uploadTable component. --}}
 <div class="table-container upload-table" tabindex="0" role="region" aria-label="Uploaded files" x-show="rows.length > 0" x-cloak>
     <table class="table">
@@ -9,6 +9,7 @@
                 <th scope="col">File name</th>
                 <th scope="col">Author</th>
                 <th scope="col">Tool</th>
+                <th scope="col">Object</th>
                 <th scope="col">Time (h)</th>
                 <th scope="col">Format</th>
                 <th scope="col" data-numeric>Size</th>
@@ -56,6 +57,14 @@
                         <p class="field-error" x-show="fieldError(row, 'tool_id')" x-text="fieldError(row, 'tool_id')"></p>
                     </td>
                     <td>
+                        <select class="select min-w-28" :class="row.flash.object_id && 'cell-flash'" :aria-label="'Object for ' + row.file" x-model="row.object_id" x-on:change="edit(row)"
+                                :disabled="row.status !== 'staged' && row.status !== 'uploading'" :aria-invalid="!!fieldError(row, 'object_id')">
+                            <option value="">Select</option>
+                            @foreach ($objects as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
+                        </select>
+                        <p class="field-error" x-show="fieldError(row, 'object_id')" x-text="fieldError(row, 'object_id')"></p>
+                    </td>
+                    <td>
                         <input class="input w-20" type="number" min="0" step="0.25" :class="row.flash.production_time_hours && 'cell-flash'" :aria-label="'Production time for ' + row.file"
                                x-model="row.production_time_hours" x-on:input="edit(row)" :disabled="row.status !== 'staged' && row.status !== 'uploading'" :aria-invalid="!!fieldError(row, 'production_time_hours')">
                         <p class="field-error" x-show="fieldError(row, 'production_time_hours')" x-text="fieldError(row, 'production_time_hours')"></p>
@@ -78,7 +87,7 @@
                 </tr>
                 <tr x-show="row.error || row.warning || row.status === 'registered'" x-cloak>
                     <td></td>
-                    <td colspan="9" class="cell-wrap">
+                    <td colspan="10" class="cell-wrap">
                         <p class="field-error m-0" x-show="row.error"><x-ui.icon name="warning-circle" /><span x-text="row.error"></span></p>
                         <p class="field-hint m-0" x-show="row.warning"><x-ui.icon name="info" /><span x-text="row.warning"></span></p>
                         <p class="field-hint m-0" x-show="row.status === 'registered'"><x-ui.icon name="check-circle" class="text-success" /><span x-text="'Registered as ' + (row.asset_name ?? row.name) + '.'"></span></p>
@@ -86,7 +95,7 @@
                 </tr>
                 <tr x-show="row.expanded" x-cloak>
                     <td></td>
-                    <td colspan="9" class="cell-wrap py-3">
+                    <td colspan="10" class="cell-wrap py-3">
                         <label :for="'desc-' + row.key" class="field-label">Description (optional)</label>
                         <textarea :id="'desc-' + row.key" class="textarea" x-model="row.description" x-on:input="edit(row)"></textarea>
                         <p class="field-error" x-show="fieldError(row, 'description')" x-text="fieldError(row, 'description')"></p>

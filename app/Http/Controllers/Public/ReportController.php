@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\DeviceClass;
-use App\Support\MetricDefinitions;
 use App\Support\SampleReports;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -48,7 +47,7 @@ class ReportController extends Controller
         return view('pages.public.report-show', [
             'report' => $report,
             'method' => SampleReports::METHODS[$report['method']],
-            'budgetItems' => MetricDefinitions::BUDGET_ITEMS,
+            'budgetItems' => SampleReports::BUDGET_ITEMS,
             'standardLimitations' => SampleReports::STANDARD_LIMITATIONS,
             'previewState' => $this->previewState($request),
         ]);

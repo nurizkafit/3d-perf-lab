@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Asset;
+use App\Models\AssetObject;
 use App\Models\Tool;
 use App\Models\UploadItem;
 use App\Models\UploadSession;
@@ -35,7 +36,7 @@ class AssetRegistrationService
             $item->update(['metadata_json' => $input]);
 
             $validator = Validator::make($input, $this->rules($user), [], [
-                'tool_id' => 'tool', 'production_time_hours' => 'production time',
+                'tool_id' => 'tool', 'object_id' => 'object', 'production_time_hours' => 'production time',
             ]);
 
             if ($validator->fails()) {
@@ -60,6 +61,7 @@ class AssetRegistrationService
             'name' => trim((string) ($row['name'] ?? '')),
             'author' => $user->can('setAuthor', Asset::class) ? trim((string) ($row['author'] ?? '')) : $user->name,
             'tool_id' => $row['tool_id'] ?? null,
+            'object_id' => $row['object_id'] ?? null,
             'production_time_hours' => $row['production_time_hours'] ?? null,
             'description' => isset($row['description']) && trim((string) $row['description']) !== '' ? trim((string) $row['description']) : null,
         ];
@@ -71,6 +73,8 @@ class AssetRegistrationService
             'name' => ['required', 'string', 'max:150'],
             'author' => ['required', 'string', 'max:100'],
             'tool_id' => ['required', 'integer', Rule::exists(Tool::class, 'id')->where('is_active', true)],
+            // Required for every new upload (decision D52).
+            'object_id' => ['required', 'integer', Rule::exists(AssetObject::class, 'id')->where('is_active', true)],
             'production_time_hours' => ['required', 'numeric', 'min:0', 'max:10000'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
@@ -101,6 +105,7 @@ class AssetRegistrationService
                 $asset = Asset::create([
                     'name' => $data['name'],
                     'tool_id' => $data['tool_id'],
+                    'object_id' => $data['object_id'],
                     'author' => $data['author'],
                     'uploaded_by' => $user->id,
                     'description' => $data['description'],

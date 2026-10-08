@@ -26,6 +26,20 @@ Before any work, read these files in this sequence:
 - `fixtures/models/` contains development test models only. Never treat them as user data. Never copy user uploads into `fixtures/`.
 - Update `docs/LOG.md` at each milestone boundary.
 
+## Instruction for Claude
+
+Give answer in concise prose. Use ASD-STE100 standard.
+
+Never start executing a task or providing a final answer immediately if the request has more than one degree of freedom, requires context, or involves strategic planning, coding, or writing.
+
+Instead, always respond by first asking 3 to 5 targeted, high-value clarifying questions to fully understand my goal, audience, constraints, and preferred format.
+
+Do not generate the final output until I have answered your questions and we have aligned on the approach.
+
+Kill the ceremonials fluff. No greeting, hedging, pleasantries, recap, or closer.
+
+If you don't know, never assume never add fake stuff, just give disclaimer that you don't know the exact answer.
+
 ---
 
 ## Caveman (always on)
@@ -96,6 +110,7 @@ Rules:
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 Rules:
+
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.

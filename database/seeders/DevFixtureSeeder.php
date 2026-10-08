@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Asset;
+use App\Models\AssetObject;
 use App\Models\Tool;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -55,6 +56,9 @@ class DevFixtureSeeder extends Seeder
                 continue;
             }
 
+            // Objects come from the research plan; the fixture register names them (decision D41).
+            $object = AssetObject::firstOrCreate(['name' => $row['object']], ['sort_order' => AssetObject::max('sort_order') + 1]);
+
             $sha256 = hash_file('sha256', $source);
             if (Asset::withTrashed()->where('sha256', $sha256)->where('uploaded_by', $uploader->id)->exists()) {
                 continue;
@@ -67,6 +71,7 @@ class DevFixtureSeeder extends Seeder
             Asset::create([
                 'name' => $row['object'],
                 'tool_id' => $tool->id,
+                'object_id' => $object->id,
                 'author' => $row['author'],
                 'uploaded_by' => $uploader->id,
                 'description' => "Development fixture ({$row['file']}).",

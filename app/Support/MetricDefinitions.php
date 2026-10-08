@@ -3,65 +3,63 @@
 namespace App\Support;
 
 /**
- * Labels and short explanations for budget items and metrics, shown next to the values.
- * The definitions themselves are in BENCHMARK.md (§3, §6.1); this text only explains them.
+ * Labels and short explanations for Target checks, smoothness labels, and metrics, shown next to the values.
+ * The definitions themselves are in BENCHMARK.md (§3, §4.4, §6); this text only explains them.
  */
 class MetricDefinitions
 {
-    /** Budget items (BENCHMARK.md §6.1). `methods` = the methods the item applies to. */
-    public const BUDGET_ITEMS = [
+    /** Test methods (BENCHMARK.md §4). */
+    public const METHODS = [
+        'side_by_side' => ['label' => 'Side-by-Side Test', 'icon' => 'columns'],
+        'crowd' => ['label' => 'Crowd Test', 'icon' => 'users-three'],
+    ];
+
+    /** Target fields (BENCHMARK.md §6.2), in display order. */
+    public const TARGET_FIELDS = [
+        'max_load_s' => [
+            'label' => 'Loads in', 'unit' => 's', 'rule' => '≤', 'min' => 0.1, 'max' => 60, 'step' => 0.1,
+            'help' => 'Time to first frame on a first visit (cold load): download, parse, GPU upload, and first frame.',
+        ],
+        'target_fps' => [
+            'label' => 'Smooth at', 'unit' => 'fps', 'rule' => '', 'min' => 10, 'max' => 240, 'step' => 1,
+            'help' => 'Goal frame rate. A scene is Smooth when 95% of frames arrive within 1.25 × the goal frame time.',
+        ],
         'max_file_size_mb' => [
-            'label' => 'File size', 'unit' => 'MB', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
+            'label' => 'File size', 'unit' => 'MB', 'rule' => '≤', 'min' => 0.1, 'max' => 1000, 'step' => 0.1,
             'help' => 'Size of the model file, including the .bin and texture files of a GLTF.',
-        ],
-        'max_ttff_cold_ms' => [
-            'label' => 'Time to first frame, cold', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison'],
-            'help' => 'Download, parse, GPU upload, and first frame with an empty cache. Median of the repetitions.',
-        ],
-        'max_ttff_warm_ms' => [
-            'label' => 'Time to first frame, warm', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison'],
-            'help' => 'The same load a second time, with the file in the browser cache. Median of the repetitions.',
-        ],
-        'max_p95_frame_ms' => [
-            'label' => 'p95 frame interval', 'unit' => 'ms', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
-            'help' => '95% of frames arrive within this time; the slowest 5% take longer. Lower is smoother.',
-        ],
-        'max_jank_pct' => [
-            'label' => 'Jank frames', 'unit' => '%', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
-            'help' => 'Share of frames that take more than twice the budget frame time: visible stutter.',
-        ],
-        'max_draw_calls' => [
-            'label' => 'Draw calls', 'unit' => '', 'rule' => '≤', 'methods' => ['comparison', 'stress'],
-            'help' => 'Number of draw commands the renderer sends to the GPU for one frame of the stable scene.',
-        ],
-        'max_texture_memory_mb' => [
-            'label' => 'Texture memory', 'unit' => 'MB', 'rule' => '≤', 'methods' => ['comparison', 'stress', 'headroom'],
-            'help' => 'Estimated GPU memory for the textures (width × height × 4 bytes, more with mipmaps). An estimate, not measured.',
-        ],
-        'min_headroom_instances' => [
-            'label' => 'Headroom instances', 'unit' => '', 'rule' => '≥', 'methods' => ['headroom'],
-            'help' => 'Largest instance count that stays inside the p95 frame and jank limits. Median of the repetitions.',
-        ],
-        'min_instances_at_budget' => [
-            'label' => 'Instances at budget', 'unit' => '', 'rule' => '≥', 'methods' => ['stress'],
-            'help' => 'Largest Stress step that still meets the p95 frame interval limit.',
         ],
     ];
 
-    /** Runtime and load metrics shown in result tables (BENCHMARK.md §3.2, §3.3). */
+    /** Target checks (BENCHMARK.md §6.1). */
+    public const TARGET_CHECKS = [
+        'load' => ['label' => 'Loads in time', 'help' => 'Median cold time to first frame is within the Target load time.'],
+        'smooth' => ['label' => 'Runs smooth', 'help' => 'The motion scenario is Smooth at the Target frame rate.'],
+        'file_size' => ['label' => 'File size', 'help' => 'The model file is within the Target file size.'],
+    ];
+
+    /** Smoothness labels (BENCHMARK.md §4.4). */
+    public const SMOOTHNESS = [
+        'smooth' => ['label' => 'Smooth', 'help' => '95% of frames within 1.25 × the goal frame time, and at most 1% stutter.'],
+        'mostly_smooth' => ['label' => 'Mostly smooth', 'help' => '95% of frames within 2 × the goal frame time.'],
+        'choppy' => ['label' => 'Choppy', 'help' => 'Slower than 2 × the goal frame time for more than 5% of frames.'],
+    ];
+
+    /** Motion scenarios (BENCHMARK.md §4.2), in run order. */
+    public const MOTIONS = [
+        'static' => ['label' => 'Static', 'help' => 'Nothing moves; the camera is fixed.'],
+        'spin' => ['label' => 'Spin', 'help' => 'Each object turns around its own vertical axis at 180° per second.'],
+        'physics' => ['label' => 'Physics', 'help' => 'The objects fall into an open box under gravity; then the box shakes.'],
+    ];
+
+    /** Technical metrics shown in the collapsed Technical details (BENCHMARK.md §3.2, §3.3). */
     public const METRICS = [
         'interval_p95_ms' => ['label' => 'p95 frame interval', 'unit' => 'ms', 'help' => 'Time between frames that 95% of frames do not exceed. Shows stutter that an average hides.'],
         'interval_p50_ms' => ['label' => 'p50 frame interval', 'unit' => 'ms', 'help' => 'The typical time between frames (median). Capped by the display refresh rate.'],
         'work_p95_ms' => ['label' => 'Render work p95', 'unit' => 'ms', 'help' => 'CPU time spent in one render call (95th percentile). Not capped by the display, so it shows cost.'],
+        'physics_p95_ms' => ['label' => 'Physics time p95', 'unit' => 'ms', 'help' => 'CPU time of one physics step (95th percentile). Physics scenario only.'],
         'gpu_p95_ms' => ['label' => 'GPU time p95', 'unit' => 'ms', 'help' => 'GPU time per frame from a WebGL timer query. Only some browsers expose it; never estimated.'],
-        'jank_pct' => ['label' => 'Jank', 'unit' => '%', 'help' => 'Share of frames slower than twice the budget frame time.'],
+        'jank_pct' => ['label' => 'Stutter', 'unit' => '%', 'help' => 'Share of frames slower than twice the goal frame time.'],
         'ttff_cold_ms' => ['label' => 'Time to first frame, cold', 'unit' => 'ms', 'help' => 'Download + parse + GPU upload + first frame, with an empty cache.'],
-        'draw_calls' => ['label' => 'Draw calls', 'unit' => '', 'help' => 'Draw commands per frame in the stable scene (browser-reported by the renderer).'],
+        'draw_calls' => ['label' => 'Draw calls', 'unit' => '', 'help' => 'Draw commands per frame (browser-reported by the renderer).'],
     ];
-
-    /** Budget items that apply to one method, in display order. */
-    public static function budgetItemsFor(string $method): array
-    {
-        return array_filter(self::BUDGET_ITEMS, fn ($item) => in_array($method, $item['methods'], true));
-    }
 }

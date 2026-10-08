@@ -9,7 +9,7 @@
     </div>
     <div class="space-y-1">
         <h2 class="font-semibold">{{ $asset->name }}</h2>
-        <p class="text-body-sm text-neutral-600">{{ $asset->tool->name }} · {{ $asset->author }}</p>
+        <p class="text-body-sm text-neutral-600">{{ $asset->tool->name }}@if ($asset->object) · {{ $asset->object->name }}@endif · {{ $asset->author }}</p>
     </div>
     <div class="mt-auto flex flex-wrap items-center gap-2">
         <x-ui.badge>{{ strtoupper($asset->format) }}</x-ui.badge>

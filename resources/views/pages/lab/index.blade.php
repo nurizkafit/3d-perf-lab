@@ -1,24 +1,24 @@
-<x-layouts::app title="Performance Lab" description="Choose a test method. Each method answers a different question." :sample="false">
+<x-layouts::app title="Performance Lab" description="Look at the assets first, then measure them. Each test answers a different question." :sample="false">
     <ul class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
         <li>
-            <x-ui.card :href="route('lab.comparison')" class="flex h-full flex-col gap-3">
+            <x-ui.card class="flex h-full flex-col gap-3" aria-disabled="true">
                 <x-ui.icon name="columns" size="md" />
-                <h2 class="text-h3 font-semibold">Comparison Test</h2>
-                <p class="text-body-sm text-neutral-600">N assets in N separate viewers, one at a time. How does each asset load and render on its own?</p>
+                <h2 class="text-h3 font-semibold">Side-by-Side Test <span class="sidebar-soon">M4.3</span></h2>
+                <p class="text-body-sm text-neutral-600">2–4 assets next to each other. Which version loads faster and runs smoother?</p>
             </x-ui.card>
         </li>
         <li>
-            <x-ui.card :href="route('lab.stress')" class="flex h-full flex-col gap-3">
-                <x-ui.icon name="stack" size="md" />
-                <h2 class="text-h3 font-semibold">Stress Test</h2>
-                <p class="text-body-sm text-neutral-600">N instances in one scene at fixed steps. How does performance change as the count grows?</p>
+            <x-ui.card class="flex h-full flex-col gap-3" aria-disabled="true">
+                <x-ui.icon name="users-three" size="md" />
+                <h2 class="text-h3 font-semibold">Crowd Test <span class="sidebar-soon">M4.4</span></h2>
+                <p class="text-body-sm text-neutral-600">Copies fill the scene until it stops being smooth. How many copies can this device show?</p>
             </x-ui.card>
         </li>
         <li>
-            <x-ui.card :href="route('lab.headroom')" class="flex h-full flex-col gap-3">
-                <x-ui.icon name="gauge" size="md" />
-                <h2 class="text-h3 font-semibold">Headroom Test</h2>
-                <p class="text-body-sm text-neutral-600">Instances increase until the frame budget fails. How many can this device hold?</p>
+            <x-ui.card class="flex h-full flex-col gap-3" aria-disabled="true">
+                <x-ui.icon name="scales" size="md" />
+                <h2 class="text-h3 font-semibold">Tool summary <span class="sidebar-soon">M4.5</span></h2>
+                <p class="text-body-sm text-neutral-600">Compare authoring tools on the objects that every tool has.</p>
             </x-ui.card>
         </li>
     </ul>

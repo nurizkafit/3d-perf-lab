@@ -5,6 +5,7 @@
         <div class="grid gap-4 sm:grid-cols-2">
             <x-ui.input name="name" label="Asset name" :value="$asset->name" required />
             <x-ui.select name="tool_id" label="Tool" :options="$tools" :value="$asset->tool_id" />
+            <x-ui.select name="object_id" label="Object" :options="$objects" :value="$asset->object_id" placeholder="Select an object" />
             @can('setAuthor', \App\Models\Asset::class)
                 <x-ui.input name="author" label="Author" :value="$asset->author" required />
             @else

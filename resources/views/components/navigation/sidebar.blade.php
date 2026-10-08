@@ -13,19 +13,19 @@
             ['label' => 'Upload', 'icon' => 'upload-simple', 'href' => route('assets.upload'), 'active' => $is('assets.upload')],
         ],
         'Performance Lab' => [
-            ['label' => 'Comparison Test', 'icon' => 'columns', 'href' => route('lab.comparison'), 'active' => $is('lab.comparison', 'lab.index')],
-            ['label' => 'Stress Test', 'icon' => 'stack', 'href' => route('lab.stress'), 'active' => $is('lab.stress')],
-            ['label' => 'Headroom Test', 'icon' => 'gauge', 'href' => route('lab.headroom'), 'active' => $is('lab.headroom')],
+            ['label' => 'Side-by-Side Test', 'icon' => 'columns', 'soon' => 'M4.3'],
+            ['label' => 'Crowd Test', 'icon' => 'users-three', 'soon' => 'M4.4'],
         ],
         'Results' => [
             ['label' => 'Test history', 'icon' => 'chart-line', 'href' => route('results.index'), 'active' => $is('results.*')],
+            ['label' => 'Tool summary', 'icon' => 'scales', 'soon' => 'M4.5'],
         ],
     ];
 
     if (auth()->user()->isAdmin()) {
         $optionIcons = [
-            'tools' => 'wrench', 'camera' => 'camera', 'lighting' => 'lightbulb', 'background' => 'paint-bucket',
-            'resolution' => 'frame-corners', 'instance-steps' => 'stack-simple', 'device-classes' => 'devices', 'budgets' => 'target',
+            'tools' => 'wrench', 'objects' => 'shapes', 'camera' => 'camera', 'lighting' => 'lightbulb', 'background' => 'paint-bucket',
+            'resolution' => 'frame-corners', 'device-classes' => 'devices', 'targets' => 'target',
         ];
         $sections['Administration'] = [
             ['label' => 'Users', 'icon' => 'users', 'href' => route('admin.users.index'), 'active' => $is('admin.users.*')],

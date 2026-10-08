@@ -33,8 +33,8 @@ Complete one row for each file. The seeder reads this table for metadata. Only u
 
 ## Recommended minimum set
 
-- The same object (for example, Bird) from all three tools — for the Comparison Test.
-- Two or three different objects from one tool — for the Mixed-Asset Stress Test.
+- The same object (for example, Bird) from all three tools — for the Side-by-Side Test and the Tool summary.
+- The same two or three objects from each tool — for the Crowd Test Per tool.
 - One small file (< 1 MB) and one large file (> 10 MB) — for load and limit tests.
 - One file with textures and one without — for texture-memory metrics.
 - One invalid file (for example, a renamed `.txt`) — for upload validation tests.

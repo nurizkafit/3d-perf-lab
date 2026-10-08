@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\BudgetPreset;
+use App\Models\Asset;
+use App\Models\AssetObject;
 use App\Models\DeviceClass;
 use App\Models\OptionPreset;
+use App\Models\Target;
 use App\Models\Tool;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -29,9 +31,9 @@ class VerificationEnvironmentTest extends TestCase
     public function test_the_full_schema_exists(): void
     {
         foreach ([
-            'users', 'tools', 'option_presets', 'device_classes', 'budget_presets', 'budget_preset_device_class',
+            'users', 'tools', 'objects', 'option_presets', 'device_classes', 'targets', 'device_class_target',
             'assets', 'asset_metrics', 'upload_sessions', 'upload_items',
-            'test_sessions', 'test_session_assets', 'test_runs', 'test_results', 'budget_evaluations',
+            'test_sessions', 'test_session_assets', 'test_runs', 'test_results', 'target_checks',
             'reports', 'report_public_assets',
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing table {$table}");
@@ -44,30 +46,41 @@ class VerificationEnvironmentTest extends TestCase
         $this->assertSame(['Blender', 'Prisma3D', 'Spline'], Tool::orderBy('sort_order')->pluck('name')->all());
         $this->assertSame(11, DeviceClass::count());
 
-        foreach (['camera', 'lighting', 'background', 'resolution', 'instance_steps'] as $type) {
+        foreach (['camera', 'lighting', 'background', 'resolution'] as $type) {
             $this->assertSame(1, OptionPreset::where('type', $type)->where('is_default', true)->count(), "Default {$type}");
         }
+        $this->assertFalse(OptionPreset::where('type', 'instance_steps')->exists(), 'The instance-step list was removed in M4.2');
+        $this->assertSame(['Apple', 'Chicken', 'Book'], AssetObject::orderBy('sort_order')->pluck('name')->all(), 'Objects from the fixture register');
+        $this->assertFalse(Asset::whereNull('object_id')->exists(), 'Every fixture asset has an object');
     }
 
-    public function test_budget_presets_link_to_their_device_classes(): void
+    public function test_seed_targets_match_benchmark_and_link_to_their_device_classes(): void
     {
-        $desktop = BudgetPreset::where('name', 'Desktop — Standard')->firstOrFail();
-
-        $this->assertCount(4, $desktop->deviceClasses);
-        $this->assertSame(16.7, $desktop->items_json['max_p95_frame_ms']['limit']);
-        $this->assertFalse($desktop->items_json['min_instances_at_budget']['enabled']);
+        // BENCHMARK.md §6.2: load time (s), goal frame rate (fps), file size (MB).
+        $expected = [
+            'Desktop' => [3.0, 60, 20.0, 4],
+            'Phone — Flagship' => [3.0, 60, 12.0, 2],
+            'Phone — Mid-range' => [4.0, 30, 8.0, 2],
+            'Phone — Entry' => [6.0, 30, 5.0, 1],
+        ];
+        $targets = Target::with('deviceClasses')->orderBy('sort_order')->get()->keyBy('name');
+        $this->assertSame(array_keys($expected), $targets->keys()->all());
+        foreach ($expected as $name => [$load, $fps, $size, $classes]) {
+            $this->assertSame([$load, $fps, $size, $classes], [$targets[$name]->max_load_s, $targets[$name]->target_fps, $targets[$name]->max_file_size_mb, $targets[$name]->deviceClasses->count()], $name);
+        }
+        $this->assertTrue($targets['Desktop']->is_default);
 
         $iphone = DeviceClass::where('name', 'iPhone — Standard')->firstOrFail();
-        $this->assertSame(['Mobile — Mid-range'], $iphone->budgetPresets->pluck('name')->all());
+        $this->assertSame(['Phone — Mid-range'], $iphone->targets->pluck('name')->all());
     }
 
     public function test_seeders_do_not_create_duplicates(): void
     {
-        $before = [User::count(), Tool::count(), OptionPreset::count(), DeviceClass::count(), BudgetPreset::count(), DB::table('budget_preset_device_class')->count()];
+        $before = [User::count(), Tool::count(), OptionPreset::count(), DeviceClass::count(), Target::count(), DB::table('device_class_target')->count()];
 
         $this->seed();
 
-        $after = [User::count(), Tool::count(), OptionPreset::count(), DeviceClass::count(), BudgetPreset::count(), DB::table('budget_preset_device_class')->count()];
+        $after = [User::count(), Tool::count(), OptionPreset::count(), DeviceClass::count(), Target::count(), DB::table('device_class_target')->count()];
         $this->assertSame($before, $after);
     }
 

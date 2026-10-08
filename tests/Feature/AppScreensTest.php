@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Asset;
+use App\Models\Tool;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -23,7 +25,7 @@ class AppScreensTest extends TestCase
 
     private const SCREENS = [
         '/dashboard', '/assets/upload',
-        '/lab', '/lab/comparison', '/results', '/results/1/report',
+        '/lab', '/results', '/results/1/report',
     ];
 
     public function test_every_screen_renders(): void
@@ -35,28 +37,29 @@ class AppScreensTest extends TestCase
 
     public function test_sample_data_is_marked(): void
     {
-        foreach (array_diff(self::SCREENS, ['/lab', '/assets/upload', '/lab/comparison']) as $url) {
+        foreach (array_diff(self::SCREENS, ['/lab', '/assets/upload']) as $url) {
             $this->get($url)->assertSee('Sample data');
         }
     }
 
-    public function test_all_eight_option_lists_render_and_unknown_lists_404(): void
+    public function test_all_option_lists_render_and_removed_lists_404(): void
     {
-        foreach (['tools', 'camera', 'lighting', 'background', 'resolution', 'instance-steps', 'device-classes', 'budgets'] as $list) {
+        foreach (['tools', 'objects', 'camera', 'lighting', 'background', 'resolution', 'device-classes', 'targets'] as $list) {
             $this->get("/admin/options/{$list}")->assertOk();
         }
 
-        $this->get('/admin/options/nope')->assertNotFound();
+        foreach (['nope', 'instance-steps', 'budgets'] as $list) {
+            $this->get("/admin/options/{$list}")->assertNotFound();
+        }
     }
 
-    public function test_the_sidebar_links_to_all_three_lab_methods(): void
+    public function test_the_sidebar_shows_the_new_lab_methods_as_coming(): void
     {
-        $response = $this->get('/dashboard');
-
-        foreach (['comparison', 'stress', 'headroom'] as $method) {
-            $response->assertSee('href="'.url("/lab/{$method}").'"', false);
-        }
-        $response->assertDontSee('Coming in M4');
+        $this->get('/dashboard')
+            ->assertSee('Side-by-Side Test')->assertSee('coming in M4.3')
+            ->assertSee('Crowd Test')->assertSee('coming in M4.4')
+            ->assertSee('Tool summary')->assertSee('coming in M4.5')
+            ->assertDontSee('href="'.url('/lab/comparison').'"', false)->assertDontSee('href="'.url('/lab/headroom').'"', false);
     }
 
     public function test_upload_config_is_passed_as_json_not_inline_script(): void
@@ -76,18 +79,11 @@ class AppScreensTest extends TestCase
         }
     }
 
-    public function test_comparison_budget_lists_only_comparison_items(): void
-    {
-        $this->get('/lab/comparison')
-            ->assertSee('Time to first frame, warm')
-            ->assertDontSee('Headroom instances');
-    }
-
     public function test_sidebar_items_are_not_hidden_in_collapsible_groups(): void
     {
         $this->get('/dashboard')
             ->assertDontSee('<details', false)
-            ->assertSee('Budget presets');
+            ->assertSee('Targets')->assertSee('Objects')->assertDontSee('Budget presets');
     }
 
     public function test_times_are_shown_in_the_display_timezone(): void
@@ -96,6 +92,12 @@ class AppScreensTest extends TestCase
         $this->travelTo(Carbon::parse('2026-10-07 20:30:00', 'UTC'));
         $this->actingAs(User::factory()->create());
 
-        $this->get('/lab/comparison')->assertOk()->assertSee('Comparison Test — 2026-10-08 03:30');
+        $user = User::factory()->create();
+        $asset = Asset::create([
+            'name' => 'Timed asset', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'author' => 'A', 'uploaded_by' => $user->id,
+            'production_time_hours' => 1, 'format' => 'glb', 'web_file_path' => 'assets/web/x/x.glb', 'file_size' => 10, 'sha256' => str_repeat('b', 64),
+        ]);
+
+        $this->get("/assets/{$asset->id}")->assertOk()->assertSee('2026-10-08 03:30');
     }
 }

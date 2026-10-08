@@ -24,10 +24,11 @@ class AssetSearchController extends Controller
         $ids = collect(explode(',', (string) $request->query('ids', '')))->map($id)->filter()->take(50)->all();
 
         $assets = Asset::query()
-            ->with(['tool', 'metrics'])
+            ->with(['tool', 'object', 'metrics'])
             ->when($ids, fn ($query) => $query->whereIn('id', $ids))
             ->when($q !== '', fn ($query) => $query->where('name', 'like', $like))
             ->when($id($request->query('tool')), fn ($query, $tool) => $query->where('tool_id', $tool))
+            ->when($id($request->query('object')), fn ($query, $object) => $query->where('object_id', $object))
             ->when(trim((string) $request->query('author', '')) !== '', fn ($query) => $query->where('author', 'like', '%'.addcslashes(trim((string) $request->query('author')), '%_\\').'%'))
             ->when(in_array($request->query('format'), ['glb', 'gltf'], true), fn ($query) => $query->where('format', $request->query('format')))
             ->orderBy('name')
@@ -40,6 +41,8 @@ class AssetSearchController extends Controller
                 'name' => $asset->name,
                 'tool_id' => $asset->tool_id,
                 'tool' => $asset->tool->name,
+                'object_id' => $asset->object_id,
+                'object' => $asset->object?->name,
                 'author' => $asset->author,
                 'format' => strtoupper($asset->format),
                 'size' => Number::fileSize($asset->file_size, maxPrecision: 1),

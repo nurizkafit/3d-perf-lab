@@ -14,7 +14,6 @@ class OptionPresetSeeder extends Seeder
             ['resolution', '1280×720', ['width' => 1280, 'height' => 720], true],
             ['resolution', '1920×1080', ['width' => 1920, 'height' => 1080], false],
             ['resolution', '720×1280', ['width' => 720, 'height' => 1280], false],
-            ['instance_steps', '1 / 5 / 10 / 25 / 50', ['steps' => [1, 5, 10, 25, 50]], true],
 
             // One default each, decided by the user at M0.2 (decision D23).
             ['camera', 'Auto-frame', [

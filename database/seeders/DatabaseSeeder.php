@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             ToolSeeder::class,
             OptionPresetSeeder::class,
             DeviceClassSeeder::class,
-            BudgetPresetSeeder::class,
+            TargetSeeder::class,
         ]);
     }
 }

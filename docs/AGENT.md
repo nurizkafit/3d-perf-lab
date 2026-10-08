@@ -37,7 +37,7 @@ After a milestone:
 
 Ask the user before any decision on product behavior, UX, information architecture, data model relationships, methodology (`BENCHMARK.md`), visual system (`DESIGN.md`), new dependencies, or hosting. Examples:
 
-- A new feature, page, metric, budget item, or test method.
+- A new feature, page, metric, Target check, or test method.
 - A change to the meaning of a metric or a stored result.
 - A new required metadata field.
 - A new color, font size, radius, shadow, or layout pattern.
@@ -87,6 +87,7 @@ Only these packages are approved without a question. Anything else needs approva
 - Composer: `laravel/framework`, a Phosphor Blade icon package (for example `codeat3/blade-phosphor-icons`, confirm at M0), dev tools that ship with Laravel (Pint, Pest/PHPUnit, Collision).
 - npm: `tailwindcss`, `@tailwindcss/vite`, `basecoat-css`, `alpinejs`, `three`, `@fontsource/funnel-display` (or variable variant), `@fontsource-variable/atkinson-hyperlegible-next` (or static variant), `@fontsource-variable/atkinson-hyperlegible-mono` (or static variant), `laravel-vite-plugin`, `vite`.
 - Chart library: `uplot` (approved at M4.1). Loaded with dynamic `import()` on result pages only.
+- Physics: `cannon-es` (approved 2026-10-07, D49). Loaded with dynamic `import()` on Lab and result pages only; never in the entry bundle.
 
 ### 5.3 Not allowed without approval
 
@@ -114,8 +115,8 @@ app/
 ├── Models/
 ├── Policies/               (AssetPolicy, TestSessionPolicy, ReportPolicy, UserPolicy, UploadSessionPolicy)
 ├── Services/               (UploadService, AssetRegistrationService, RunResultService,
-│                            BudgetEvaluator, PublicReportPresenter)
-└── Support/                (small value objects, for example BudgetItems)
+│                            TargetEvaluator, PublicReportPresenter)
+└── Support/                (small value objects, for example TargetChecks)
 ```
 
 Make a Service for a multi-step workflow (several models, storage, or rules). Do not make a Service that only wraps one query.
@@ -137,14 +138,15 @@ resources/
     │   ├── inspect.js      (asset metrics, thumbnail render)
     │   ├── environment.js  (context collection, device class suggestion)
     │   ├── measure.js      (frame loop, samples, percentiles, GPU timer)
-    │   └── methods/        (comparison.js, stress.js, headroom.js)
-    └── features/           (upload.js, asset-selector.js, lab-config.js, results.js, public-report.js)
+    │   ├── motion.js       (Static, Spin, Physics per-frame updates; cannon-es; convex hull colliders)
+    │   └── methods/        (side-by-side.js, crowd.js)
+    └── features/           (upload.js, asset-selector.js, lab-config.js, results.js, tool-summary.js, public-report.js)
 ```
 
 Rules:
 
-- Load Three.js only on pages that need it (dynamic `import()`). The main entry bundle must not contain Three.js. Check the build output at each milestone.
-- One shared viewer. Preview, thumbnail, benchmark, and public reproduction are **modes** of the same viewer, not copies.
+- Load Three.js and cannon-es only on pages that need them (dynamic `import()`). The main entry bundle must contain neither. Check the build output at each milestone.
+- One shared viewer. Preview, thumbnail, look phase (linked panes), benchmark, explore, and public reproduction are **modes** of the same viewer, not copies.
 - Blade passes configuration through `data-*` attributes or a JSON `<script type="application/json">` block. No large inline scripts.
 
 ---
@@ -154,7 +156,7 @@ Rules:
 `BENCHMARK.md` is the methodology. In code:
 
 - Do not change a metric definition, a default, or the run protocol without approval.
-- Benchmark mode disables controls, gizmo, auto-rotate, overlays, and CSS motion.
+- Benchmark mode disables controls, gizmo, overlays, and CSS motion. Only the configured motion scenario moves the scene.
 - No DOM updates during a measurement window.
 - Label estimates as estimates and browser-reported values as browser-reported.
 - The public reproduction never measures and never writes results.

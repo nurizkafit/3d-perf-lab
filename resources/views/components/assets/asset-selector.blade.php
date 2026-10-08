@@ -1,4 +1,4 @@
-@props(['tools', 'max' => 8])
+@props(['tools', 'objects' => [], 'max' => 8])
 {{-- Asset Selector modal (PRD.md §8.2), shared by all methods. Open with: $dispatch('open-asset-selector', { selected: [...] }).
      It dispatches 'assets-selected' with the chosen assets in selection order. --}}
 <dialog id="asset-selector" class="dialog asset-selector" aria-labelledby="asset-selector-title" x-data="assetSelector({{ $max }})"
@@ -19,6 +19,13 @@
                     <select id="selector-tool" class="select" x-model="tool" x-on:change="search()">
                         <option value="">All tools</option>
                         @foreach ($tools as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="selector-object" class="field-label">Object</label>
+                    <select id="selector-object" class="select" x-model="object" x-on:change="search()">
+                        <option value="">All objects</option>
+                        @foreach ($objects as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
                     </select>
                 </div>
                 <div>
@@ -53,7 +60,7 @@
                             </span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold" x-text="asset.name"></span>
-                                <span class="block truncate text-body-sm text-neutral-600" x-text="asset.tool + ' · ' + asset.author"></span>
+                                <span class="block truncate text-body-sm text-neutral-600" x-text="asset.tool + (asset.object ? ' · ' + asset.object : '') + ' · ' + asset.author"></span>
                             </span>
                             <span class="num text-end text-neutral-600">
                                 <span class="block" x-text="asset.size"></span>

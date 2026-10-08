@@ -51,9 +51,9 @@ class PolicyTest extends TestCase
     {
         return TestSession::create([
             'name' => 'Policy test',
-            'method' => 'comparison',
+            'method' => 'side_by_side',
             'configuration_json' => [],
-            'budget_json' => [],
+            'target_json' => [],
             'created_by' => $this->owner->id,
         ]);
     }

@@ -17,12 +17,12 @@ PUBLIC (no login)                     AUTHENTICATED
                                       │   └── /assets/{asset}/edit
                                       ├── Performance Lab
                                       │   ├── /lab
-                                      │   ├── /lab/comparison
-                                      │   ├── /lab/stress
-                                      │   ├── /lab/headroom
+                                      │   ├── /lab/side-by-side
+                                      │   ├── /lab/crowd
                                       │   └── /lab/runs/{run}        (benchmark mode)
                                       ├── Results
                                       │   ├── /results
+                                      │   ├── /results/tools         (Tool summary)
                                       │   ├── /results/{test}
                                       │   └── /results/{test}/report
                                       ├── /device                    (confirm device class)
@@ -41,7 +41,7 @@ Public pages never show drafts, private assets, staged files, internal IDs, user
 | ------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /`                              | Landing           | One viewport: name, description, three points, links to Reports and About                                                                               |
 | `GET /reports`                       | Report gallery    | Published reports only. Search (title, question, description) and filters (method, device class) by query parameters. Invalid filter values are ignored |
-| `GET /reports/{slug}`                | Report detail     | Question, budget result, interactive reproduction, evidence, configuration, environment, limitations, conclusion. 404 when not published                |
+| `GET /reports/{slug}`                | Report detail     | Question, Target result, interactive reproduction, evidence, configuration, environment, limitations, conclusion. 404 when not published                |
 | `GET /reports/{slug}/assets/{token}` | Public model file | Streams one approved model file. 404 when the report is not published, the token is revoked, or the token is wrong (all three look identical)           |
 | `GET /about`                         | About             | Section-anchor sidebar + readable content                                                                                                               |
 | `GET /contact`                       | Contact           | Owner-supplied contact methods only                                                                                                                     |
@@ -88,18 +88,18 @@ All routes below require login and an active account.
 
 | Route                 | Page                                                                                    |
 | --------------------- | --------------------------------------------------------------------------------------- |
-| `GET /lab`            | Method selection: three cards (Comparison, Stress, Headroom) with one-line descriptions |
-| `GET /lab/comparison` | Configuration steps (`DESIGN.md` §9.2)                                                  |
-| `GET /lab/stress`     | Configuration steps; scenario switch (Repeated / Mixed)                                 |
-| `GET /lab/headroom`   | Configuration steps; scenario switch                                                    |
-| `GET /lab/runs/{run}` | Benchmark mode. Only the run creator, only while the run is `running`                   |
+| `GET /lab`               | Method selection: two cards (Side-by-Side, Crowd) with one-line descriptions, and a link to the Tool summary |
+| `GET /lab/side-by-side`  | Look phase (linked panes) and configuration steps (`DESIGN.md` §9.2)                     |
+| `GET /lab/crowd`         | Scenario switch (Per asset / Per tool), selection, look phase, and configuration steps   |
+| `GET /lab/runs/{run}`    | Benchmark mode with the viewer visible. Only the run creator, only while the run is `running` |
 
 ### 3.4 Results
 
 | Route                                     | Page                                                                             | Access                    |
 | ----------------------------------------- | -------------------------------------------------------------------------------- | ------------------------- |
 | `GET /results`                            | Test history                                                                     | Own tests; admin sees all |
-| `GET /results/{test}`                     | Test detail: budget result, metrics, charts, environment, raw data               | Owner or admin            |
+| `GET /results/tools`                      | Tool summary: device class, tools, common objects (query parameters)             | All users (own results; admin sees all) |
+| `GET /results/{test}`                     | Test detail: results on the viewer, Target checks, best markers, metrics, charts, environment, raw data | Owner or admin |
 | `GET /results/{test}/export.json`, `.csv` | Export                                                                           | Owner or admin            |
 | `GET /results/{test}/report`              | Report editor: question, limitations, conclusion, public asset approval, preview | Owner or admin            |
 | `PUT /results/{test}/report`              | Save draft                                                                       | Owner or admin            |
@@ -116,7 +116,7 @@ All routes below require login and an active account.
 | `GET /admin/users/{user}/edit`, `PUT /admin/users/{user}`                          | Edit name, email, role                                                                                                                      |
 | `POST /admin/users/{user}/deactivate`, `/activate`                                 | Change status. An admin cannot deactivate their own account or remove the last active admin                                                 |
 | `POST /admin/users/{user}/reset-password`                                          | Set a new temporary password                                                                                                                |
-| `GET /admin/options/{list}`                                                        | Manage one option list. `{list}` ∈ `tools`, `camera`, `lighting`, `background`, `resolution`, `instance-steps`, `device-classes`, `budgets` |
+| `GET /admin/options/{list}`                                                        | Manage one option list. `{list}` ∈ `tools`, `objects`, `camera`, `lighting`, `background`, `resolution`, `device-classes`, `targets` |
 | `GET …/create`, `POST`, `GET …/{item}/edit`, `PUT …/{item}`, `POST …/{item}/deactivate`, `…/activate`, `…/default`, `…/reorder`, `DELETE …/{item}` under `/admin/options/{list}` | Create, edit, deactivate, activate, set default, reorder, delete (unused only) items                                                                                                     |
 
 Authorization is enforced by middleware (`role:admin`) and policies. Hiding a menu item is presentation only.
@@ -150,23 +150,23 @@ ASSETS
   Library
   Upload
 PERFORMANCE LAB
-  Comparison Test
-  Stress Test
-  Headroom Test
+  Side-by-Side Test
+  Crowd Test
 RESULTS
   Test history
+  Tool summary
 ─────────────
 ADMINISTRATION      (admin only)
   Users
 OPTION LISTS        (admin only)
     Authoring tools
+    Objects
     Camera presets
     Lighting presets
     Background presets
     Resolution presets
-    Instance steps
     Device classes
-    Budget presets
+    Targets
 ```
 
 - Groups are headings, not collapsible menus: every item is always visible, each with its own icon (`DESIGN.md` §6).
@@ -186,15 +186,15 @@ resources/views/
 │   ├── dashboard/  index
 │   ├── device/     show
 │   ├── assets/     index, upload, upload-session, show, edit
-│   ├── lab/        index, comparison, stress, headroom, run
-│   ├── results/    index, show, report
+│   ├── lab/        index, side-by-side, crowd, run
+│   ├── results/    index, show, tools, report
 │   └── admin/      users/{index,create,edit}, options/{index,form}
 └── components/
     ├── ui/         button, badge, card, input, textarea, select, field-messages, dialog,
     │               dropdown, table, tabs, toast, empty-state, icon, section-label
     ├── navigation/ sidebar, header, public-header, public-footer
     ├── assets/     asset-card, asset-metrics, upload-dropzone, upload-table, asset-selector
-    ├── performance/viewer, metric-card, budget-table, step-card, device-chip
+    ├── performance/viewer, metric-card, target-checks, step-card, device-chip
     ├── reports/    report-card, report-section
     └── admin/      option-form-fields
 ```
@@ -213,6 +213,6 @@ pages/public/report-show + components/performance/viewer (data-mode="reproductio
 resources/js/features/public-report.js → shared viewer
 ```
 
-Allowed in public data: title, question, conclusion, limitations, method, scenario, instance counts, preset values, budget values, aggregated results, budget outcomes, asset names, tools, authors, asset metrics, device class, environment summary (browser, OS, GPU string when exposed), Three.js version, token URLs for approved assets.
+Allowed in public data: title, question, conclusion, limitations, method, scenario, motion scenarios, copy counts, preset values, Target values, aggregated results, smoothness labels, Target outcomes, best markers, asset names, tools, objects, authors, asset metrics, device class, environment summary (browser, OS, GPU string when exposed), Three.js version, token URLs for approved assets.
 
 Never in public data: database IDs, user emails, uploader account, storage paths, unapproved asset URLs, raw samples, other reports, draft content.

@@ -115,7 +115,7 @@ On the server (SSH):
 6. Create `app-core/.env` from the template.
 7. `composer install --no-dev --optimize-autoloader` (if not done in step 1).
 8. `php artisan migrate --force`
-9. `php artisan db:seed --class=ProductionSeeder --force` (admin, tools, presets, device classes, budgets — no fixtures).
+9. `php artisan db:seed --class=ProductionSeeder --force` (admin, tools, presets, device classes, Targets — no fixtures, no objects).
 10. `php artisan config:cache && php artisan route:cache && php artisan view:cache`
 11. Permissions: `storage/` and `bootstrap/cache/` writable by the PHP user (usually `755` folders, `644` files on Hostinger).
 12. Add the cron entry (§6).
@@ -177,7 +177,7 @@ Scheduled tasks (defined in the app):
 3. Log in as the admin. Change the seeded admin password.
 4. Create a user. Log in as that user in a private window.
 5. Upload two small GLB files with bulk upload; register them.
-6. Run a Comparison Test with 1 repetition; open the result.
+6. Run a Side-by-Side Test with 2 assets, 1 repetition, Static only; open the result.
 7. Publish a report with one approved asset; open it logged out; the reproduction loads the model.
 8. Unpublish; the public URL and the model token URL return 404.
 9. Check `storage/logs/laravel.log` for errors.

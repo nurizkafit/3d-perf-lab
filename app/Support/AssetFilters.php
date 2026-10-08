@@ -33,6 +33,7 @@ class AssetFilters
         $this->values = [
             'q' => mb_substr(trim((string) $request->query('q', '')), 0, 100),
             'tool' => $id($request->query('tool')),
+            'object' => $id($request->query('object')),
             'author' => mb_substr(trim((string) $request->query('author', '')), 0, 100),
             'format' => in_array($request->query('format'), ['glb', 'gltf'], true) ? $request->query('format') : null,
             'uploaded_by' => $id($request->query('uploaded_by')),
@@ -62,6 +63,7 @@ class AssetFilters
                 ->orWhere('assets.author', 'like', $this->like($v['q']))
                 ->orWhere('assets.description', 'like', $this->like($v['q']))))
             ->when($v['tool'], fn ($q) => $q->where('assets.tool_id', $v['tool']))
+            ->when($v['object'], fn ($q) => $q->where('assets.object_id', $v['object']))
             ->when($v['author'] !== '', fn ($q) => $q->where('assets.author', 'like', $this->like($v['author'])))
             ->when($v['format'], fn ($q) => $q->where('assets.format', $v['format']))
             ->when($v['uploaded_by'], fn ($q) => $q->where('assets.uploaded_by', $v['uploaded_by']))
@@ -79,7 +81,7 @@ class AssetFilters
         $v = $this->values;
 
         return $v['q'] !== '' || $v['author'] !== '' || $v['deleted']
-            || collect(['tool', 'format', 'uploaded_by', 'size_min', 'size_max', 'from', 'to'])->contains(fn ($key) => $v[$key] !== null);
+            || collect(['tool', 'object', 'format', 'uploaded_by', 'size_min', 'size_max', 'from', 'to'])->contains(fn ($key) => $v[$key] !== null);
     }
 
     private function like(string $value): string

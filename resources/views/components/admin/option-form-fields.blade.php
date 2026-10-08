@@ -50,24 +50,26 @@
             <x-ui.input name="height" label="Height (px)" type="number" :value="$values['height']" hint="Drawing buffer, 320–3840" />
         </div>
 
-@elseif ($list === 'instance-steps')
-        <div class="max-w-md">
-            <x-ui.input name="steps" label="Instance counts" :value="$values['steps']" hint="Ascending, separated by commas, each 1–{{ OptionLists::MAX_INSTANCES }}. Example: 1, 5, 10, 25, 50" />
-        </div>
-
 @elseif ($list === 'device-classes')
         <div class="grid max-w-xl gap-4 sm:grid-cols-2">
             <x-ui.select name="category" label="Category" :options="OptionLists::CATEGORIES" :value="$values['category']" />
             <x-ui.select name="platform" label="Platform" :options="OptionLists::PLATFORMS" :value="$values['platform']" />
         </div>
 
-@elseif ($list === 'budgets')
+@elseif ($list === 'targets')
         @php
             $checkedClasses = array_map('intval', old('device_class_ids', $values['device_class_ids']));
         @endphp
+        <div class="grid max-w-2xl gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))]">
+            @foreach (MetricDefinitions::TARGET_FIELDS as $key => $field)
+                <x-ui.input :name="$key" :label="$field['label'].' ('.$field['unit'].')'" type="number" :step="$field['step']" :value="$values[$key]"
+                    :hint="$field['help']" />
+            @endforeach
+        </div>
+
         <fieldset class="space-y-2">
             <legend class="field-label">Device classes</legend>
-            <p class="text-body-sm text-neutral-600">The Lab suggests this preset for these classes.</p>
+            <p class="text-body-sm text-neutral-600">The Lab suggests this Target for these classes.</p>
             <div class="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr))]">
                 @foreach ($deviceClasses as $class)
                     <label class="flex min-h-[var(--control-height)] items-center gap-2 rounded-md border border-neutral-200 px-3 text-body-sm has-[:checked]:border-neutral-800 has-[:checked]:bg-primary-tint">
@@ -77,33 +79,4 @@
                 @endforeach
             </div>
         </fieldset>
-
-        <x-ui.table caption="Budget items">
-            <x-slot:head><tr><th scope="col">Enabled</th><th scope="col">Budget item</th><th scope="col">Rule</th><th scope="col">Limit</th></tr></x-slot:head>
-            @foreach (MetricDefinitions::BUDGET_ITEMS as $key => $definition)
-                @php
-                    $current = old("items.{$key}", $values['items'][$key]);
-                    $error = $errors->first("items.{$key}.limit");
-                @endphp
-                <tr>
-                    <td>
-                        <input type="hidden" name="items[{{ $key }}][enabled]" value="0">
-                        <input type="checkbox" class="input" name="items[{{ $key }}][enabled]" value="1" @checked($current['enabled'] ?? false) aria-label="Enable {{ $definition['label'] }}">
-                    </td>
-                    <th scope="row" class="cell-wrap">
-                        <span class="block font-semibold">{{ $definition['label'] }}</span>
-                        <span class="block max-w-96 text-body-sm font-normal text-neutral-600">{{ $definition['help'] }}</span>
-                    </th>
-                    <td>{{ $definition['rule'] }}</td>
-                    <td class="cell-wrap">
-                        <span class="flex items-center gap-2">
-                            <input class="input w-32" type="number" step="any" name="items[{{ $key }}][limit]" value="{{ $current['limit'] ?? '' }}"
-                                   aria-label="Limit for {{ $definition['label'] }}" @if ($error) aria-invalid="true" aria-describedby="limit-{{ $key }}-error" @endif>
-                            <span class="text-body-sm text-neutral-600">{{ $definition['unit'] }}</span>
-                        </span>
-                        @if ($error)<p id="limit-{{ $key }}-error" class="field-error"><x-ui.icon name="warning-circle" />{{ $error }}</p>@endif
-                    </td>
-                </tr>
-            @endforeach
-        </x-ui.table>
 @endif

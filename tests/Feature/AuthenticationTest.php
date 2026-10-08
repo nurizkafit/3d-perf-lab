@@ -14,7 +14,7 @@ class AuthenticationTest extends TestCase
 
     private const APP_ROUTES = [
         '/dashboard', '/device', '/assets', '/assets/upload', '/assets/1', '/assets/1/edit',
-        '/lab', '/lab/comparison', '/lab/runs/1', '/results', '/results/1', '/results/1/report',
+        '/lab', '/results', '/results/1', '/results/1/report',
         '/admin/users', '/admin/options/tools',
     ];
 

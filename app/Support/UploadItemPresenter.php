@@ -25,6 +25,7 @@ class UploadItemPresenter
             'name' => $metadata['name'] ?? UploadService::defaultName($item->original_filename),
             'author' => $user->can('setAuthor', Asset::class) ? ($metadata['author'] ?? $user->name) : $user->name,
             'tool_id' => isset($metadata['tool_id']) ? (string) $metadata['tool_id'] : '',
+            'object_id' => isset($metadata['object_id']) ? (string) $metadata['object_id'] : '',
             'production_time_hours' => isset($metadata['production_time_hours']) ? (string) $metadata['production_time_hours'] : '',
             'description' => $metadata['description'] ?? '',
             'error' => $item->error_json['file'] ?? null,

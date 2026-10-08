@@ -12,13 +12,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
-/** Admin management of the eight option lists (PRD.md §11, SITEMAP.md §3.5). */
+/** Admin management of the option lists (PRD.md §11, SITEMAP.md §3.5). */
 class OptionListController extends Controller
 {
     public function index(string $list): View
     {
         $items = OptionLists::query($list)
-            ->when($list === 'budgets', fn ($query) => $query->with('deviceClasses'))
+            ->when($list === 'targets', fn ($query) => $query->with('deviceClasses'))
             ->get();
 
         return view('pages.admin.options.index', [
@@ -147,20 +147,20 @@ class OptionListController extends Controller
 
     private function form(string $list, ?Model $item): View
     {
-        $item?->loadMissing($list === 'budgets' ? ['deviceClasses'] : []);
+        $item?->loadMissing($list === 'targets' ? ['deviceClasses'] : []);
 
         return view('pages.admin.options.form', [
             'list' => $list,
             'definition' => OptionLists::definition($list),
             'item' => $item,
             'values' => OptionLists::formValues($list, $item),
-            'deviceClasses' => $list === 'budgets' ? DeviceClass::orderBy('sort_order')->get() : collect(),
+            'deviceClasses' => $list === 'targets' ? DeviceClass::orderBy('sort_order')->get() : collect(),
         ]);
     }
 
     private function syncDeviceClasses(string $list, Model $item, array $validated): void
     {
-        if ($list === 'budgets') {
+        if ($list === 'targets') {
             $item->deviceClasses()->sync($validated['device_class_ids'] ?? []);
         }
     }

@@ -9,15 +9,15 @@ use App\Http\Controllers\Assets\AssetController;
 use App\Http\Controllers\Assets\UploadController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Lab\DeviceController;
-use App\Http\Controllers\Lab\LabController;
-use App\Http\Controllers\Lab\RunController;
 use App\Http\Controllers\Public\ReportController;
 use App\Http\Controllers\Results\ResultController;
 use App\Models\DeviceClass;
 use App\Support\OptionLists;
 use App\Support\SampleReports;
 use App\Support\SampleScreens;
+use App\Support\TargetStep;
 use App\Support\ViewerConfig;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -69,16 +69,11 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/assets/{asset}/thumbnail', [AssetController::class, 'thumbnail'])->withTrashed()->whereNumber('asset')->name('assets.thumbnail');
 
     Route::view('/lab', 'pages.lab.index')->name('lab.index');
-    Route::get('/lab/comparison', [LabController::class, 'comparison'])->name('lab.comparison');
-    Route::get('/lab/stress', [LabController::class, 'stress'])->name('lab.stress');
-    Route::get('/lab/headroom', [LabController::class, 'headroom'])->name('lab.headroom');
-    Route::get('/lab/runs/{run}', [RunController::class, 'show'])->name('lab.run');
+    // Side-by-Side (M4.3) and Crowd (M4.4) pages and the benchmark page /lab/runs/{run} return with those milestones.
 
     // Lab JSON endpoints: session auth + CSRF (PRD.md §13).
     Route::get('/api/assets', AssetSearchController::class)->name('api.assets.index');
-    Route::post('/api/tests', [TestRunController::class, 'storeTest'])->name('api.tests.store');
     Route::post('/api/tests/{test}/runs', [TestRunController::class, 'startRun'])->name('api.tests.runs.store');
-    Route::post('/api/runs/{run}/results', [TestRunController::class, 'submit'])->name('api.runs.submit');
     Route::post('/api/runs/{run}/invalidate', [TestRunController::class, 'invalidate'])->name('api.runs.invalidate');
     Route::post('/api/runs/{run}/cancel', [TestRunController::class, 'cancel'])->name('api.runs.cancel');
 
@@ -123,8 +118,9 @@ if (app()->environment('local')) {
         'config' => ViewerConfig::preview(),
     ]));
 
-    Route::get('/_engine', fn () => view('dev.engine', [
+    Route::get('/_engine', fn (Request $request) => view('dev.engine', [
         'fixture' => 'blender/apel.glb',
+        'target' => TargetStep::data($request),
         'config' => [
             'url' => route('dev.fixture', 'blender/apel.glb'),
             'classes' => DeviceClass::where('is_active', true)->get(['id', 'name', 'category', 'platform']),

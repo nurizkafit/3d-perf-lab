@@ -10,22 +10,39 @@
 <main class="mx-auto max-w-[var(--content-max-width)] space-y-6 px-[var(--page-padding-inline)] py-[var(--page-padding-block)]" data-engine-self-test>
     <script type="application/json" data-engine-config>@json($config)</script>
     <header class="space-y-2">
-        <p class="section-label">Local only · M4.1</p>
+        <p class="section-label">Local only · M4.1, motion scenarios M4.2</p>
         <h1 class="text-h1 font-bold">Engine self-test</h1>
         <p class="max-w-[var(--readable-width)] text-neutral-600">
-            Runs <code>{{ $fixture }}</code> in benchmark mode at 1280 × 720: refresh-rate estimate, cold and warm load, 1 s warm-up, 5 s measurement window.
-            Jank uses a budget frame time of 16.7 ms. Nothing is stored. Keep this tab visible; hiding it makes the run invalid.
+            Runs <code>{{ $fixture }}</code> in benchmark mode at 1280 × 720: refresh-rate estimate, cold and warm load, then a warm-up and a 5 s
+            measurement window in each selected motion scenario. The smoothness label and stutter use the Target frame rate. Nothing is stored.
+            Keep this tab visible; hiding it makes the run invalid.
         </p>
+    </header>
+
+    <section class="card space-y-4" aria-labelledby="engine-settings">
+        <x-ui.section-label id="engine-settings" as="h2">Settings</x-ui.section-label>
+        <fieldset class="space-y-2">
+            <legend class="field-label">Motion scenarios</legend>
+            <div class="flex flex-wrap gap-4">
+                @foreach (\App\Support\MetricDefinitions::MOTIONS as $key => $motion)
+                    <label class="flex items-center gap-2 text-body-sm">
+                        <input type="checkbox" class="input" value="{{ $key }}" data-engine-motion checked> {{ $motion['label'] }}
+                        <span class="text-neutral-600">— {{ $motion['help'] }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </fieldset>
+        <x-performance.target-step :target="$target" />
         <div class="flex flex-wrap items-center gap-3">
             <x-ui.button icon="play" data-engine-start>Run self-test</x-ui.button>
             <p class="text-body-sm" role="status" data-engine-status></p>
         </div>
-    </header>
+    </section>
 
     <div class="viewer-frame min-h-0 bg-neutral-800 p-2" data-engine-stage></div>
 
     <div class="grid gap-6 xl:grid-cols-3" data-engine-output hidden>
-        <section class="space-y-2"><x-ui.section-label as="h2">Runtime summary (§3.3)</x-ui.section-label>
+        <section class="space-y-2"><x-ui.section-label as="h2">Runtime summary per motion (§3.3, §4.4)</x-ui.section-label>
             <div class="table-container"><table class="table"><tbody data-engine-summary></tbody></table></div></section>
         <section class="space-y-2"><x-ui.section-label as="h2">Load phases (§3.2)</x-ui.section-label>
             <div class="table-container"><table class="table"><tbody data-engine-load></tbody></table></div></section>

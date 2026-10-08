@@ -4,18 +4,16 @@ import appShell from './features/app-shell';
 import uploadTable from './features/upload';
 import assetBulk from './features/asset-bulk';
 import deviceCheck from './features/device';
-import budgetStep from './features/budget-step';
 import assetSelector from './features/asset-selector';
-import labConfig from './features/lab-config';
+import targetStep from './features/target-step';
 
 window.Alpine = Alpine;
 Alpine.data('appShell', appShell);
 Alpine.data('uploadTable', uploadTable);
 Alpine.data('assetBulk', assetBulk);
 Alpine.data('deviceCheck', deviceCheck);
-Alpine.data('budgetStep', budgetStep);
 Alpine.data('assetSelector', assetSelector);
-Alpine.data('labConfig', labConfig);
+Alpine.data('targetStep', targetStep);
 Alpine.start();
 
 // Three.js stays out of the entry bundle: the viewer loads only on pages that show a model.
@@ -27,16 +25,6 @@ if (viewerElements.length) {
 const engineSelfTest = document.querySelector('[data-engine-self-test]');
 if (engineSelfTest) {
     import('./features/engine-self-test.js').then(({ initEngineSelfTest }) => initEngineSelfTest(engineSelfTest));
-}
-
-const resultsCharts = document.querySelector('[data-results-charts]');
-if (resultsCharts) {
-    import('./features/results.js').then(({ initResults }) => initResults(resultsCharts));
-}
-
-const benchmarkRun = document.querySelector('[data-benchmark-run]');
-if (benchmarkRun) {
-    import('./features/benchmark-run.js').then(({ initBenchmarkRun }) => initBenchmarkRun(benchmarkRun));
 }
 
 const viewerLab = document.querySelector('[data-viewer-lab]');

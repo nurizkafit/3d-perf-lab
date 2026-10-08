@@ -8,9 +8,9 @@ The agent updates this file at each milestone boundary and after each decision. 
 
 | Item              | Value                                   |
 | ----------------- | --------------------------------------- |
-| Current milestone | M4.4 — Headroom Test                    |
-| Status            | Completed — waiting for user review (M4.3 also not yet reviewed); M4.5 not started. Phone self-test (M4.1) still to be run by the user |
-| Last updated      | 2026-10-06                              |
+| Current milestone | M4.2 — Lab reset and foundations |
+| Status            | M4.2 Lab reset and foundations — completed, waiting for user review. M4.3 Side-by-Side not started. Phone self-test (M4.1) still to be run by the user |
+| Last updated      | 2026-10-08                              |
 
 ---
 
@@ -44,6 +44,22 @@ These decisions were made by the user during the specification review. They are 
 | D22 | (M0.2) Budget presets link to device classes many-to-many through `budget_preset_device_class`, replacing `budget_presets.device_class_id`                                                               | `PRD.md` §11, §12                      |
 | D23 | (M0.2) Seed one default camera (Auto-frame), lighting (Studio), and background (Neutral, `neutral-100`) preset                                                                                          | `PRD.md` §11                           |
 | D24 | (M0.2) `min_instances_at_budget` is seeded disabled with no limit in all budget presets                                                                                                                  | `BENCHMARK.md` §6.2                    |
+| D54 | (2026-10-07, Q8) Milestone order: M4.2 Lab reset and foundations → M4.3 Side-by-Side → M4.4 Crowd → M4.5 Tool summary → M4.6 Results, reports, publishing. Replaces the order in D43 | `PROJECT.md` §2, §3 |
+| D53 | (2026-10-07, Q7) Delete all existing assets in `render_lab` (40 assets, all Blender, about 1.6 MB of files) instead of adding an Object to them; they are uploaded again with an Object. Executed in M4.2 after a backup and a final confirmation with the exact list | `PROJECT.md` M4.2 |
+| D52 | (2026-10-07, Q7) Object is an admin-managed option list, and it is required for every new upload | `PRD.md` §6.1, §7.1, §11 |
+| D51 | (2026-10-07, test redesign) Motion scenarios are selectable per test; all three are selected by default and the user can untick any (at least one stays selected) | `BENCHMARK.md` §4.2 |
+| D50 | (2026-10-07, test redesign) Physics colliders: a simplified convex hull of each asset (close to the mesh shape, not exact; capped point count, same cap for every asset). Not a simple box, not the exact mesh | `BENCHMARK.md` §4.2 |
+| D49 | (2026-10-07, test redesign) Physics library: `cannon-es` (approved dependency, loaded with dynamic `import()` on test pages only) | `AGENT.md` §5.2 |
+| D48 | (2026-10-07, test redesign) Tool Crowd fairness: only objects that exist in every selected tool are compared; the user chooses which of those objects to include (and which asset, when a tool has more than one for an object). Missing objects are listed | `BENCHMARK.md` (spec rewrite pending) |
+| D47 | (2026-10-07, test redesign) Crowd size: the research plan has about 20 objects; a mixed crowd allows up to 30 objects and grows as copies of each object (1×, 2×, 4×, …) | `BENCHMARK.md` (spec rewrite pending) |
+| D46 | (2026-10-07, test redesign) Targets have no "minimum copies" check. The Crowd test shows the copy count and the "Most copies" badge only | `BENCHMARK.md` (spec rewrite pending) |
+| D45 | (2026-10-07, test redesign) Smoothness is measured in three motion scenarios: Static, Spin, and Physics (objects in a box with gravity, box shaken). Physics library choice is open (new dependency) | `BENCHMARK.md` (spec rewrite pending) |
+| D44 | (2026-10-07, test redesign) Automatic smoothness labels against the Target frame rate: Smooth = 95% of frames ≤ 1.25 × goal frame time and ≤ 1% stutter; Mostly smooth = 95% of frames ≤ 2 × goal frame time; Choppy = slower | `BENCHMARK.md` (spec rewrite pending) |
+| D43 | (2026-10-07, test redesign) Replace milestones M4.2 Comparison, M4.3 Stress, M4.4 Headroom with: M4.2 Side-by-Side, M4.3 Crowd, M4.4 Targets and Tool summary; M4.5 Reports follows. Reason: the old tests hid the assets during measurement, showed numbers only, and the user could not see or interact with the assets | `PROJECT.md` (spec rewrite pending) |
+| D42 | (2026-10-07, test redesign) Keep mixed-asset crowds. Goal: compare the crowd of objects A–Z made in Blender against the same objects made in Spline and in Prisma3D | `BENCHMARK.md` (spec rewrite pending) |
+| D41 | (2026-10-07, test redesign) Add an **Object** field to assets, so that the same object made in different tools can be matched. The research plan defines which objects are created | `PRD.md` §6.1, §12 (spec rewrite pending) |
+| D40 | (2026-10-07, test redesign) Delete the existing test data in `render_lab` (test sessions, runs, results, budget evaluations). Export a JSON backup first; the agent asks for a final confirmation with the exact row list before it deletes | `LOG.md` (executed at the start of M4.2) |
+| D39 | (2026-10-07, test redesign) Results mark the best asset per metric (for example "Fastest load", "Smoothest"). Still no overall score and no weighted ranking. Replaces the "no ranking" part of D9 | `BENCHMARK.md` §1, `PRD.md` §3 (spec rewrite pending) |
 | D38 | Times are stored in UTC and shown in one display zone, `APP_DISPLAY_TIMEZONE` (default `Asia/Jakarta`), for every viewer: default test names, result, asset, upload, user, and report dates. JSON/CSV exports keep UTC | `config/lab.php`, `DEPLOYMENT.md` §4 |
 | D37 | (M4.3) `budget_evaluations.step_instances` (nullable): Stress frame items stored per step; summary items with null | `PRD.md` §12 |
 | D36 | (M4.1, Q4) Chart library: uPlot, loaded with dynamic `import()` | `AGENT.md` §5.2, `DESIGN.md` §10 |
@@ -65,10 +81,53 @@ These decisions were made by the user during the specification review. They are 
 | --- | ------------------------------------------------------------------------------------------------------- | --------- |
 | Q3  | About page text and contact methods (M1.2 uses marked placeholders until supplied)                     | Before M5.2 |
 | Q5  | Hostinger "Confirm" items in `DEPLOYMENT.md`                                                            | M5.2      |
+| Q9  | `DESIGN.md` still says "no winner markers" (§5, §12) and describes budget tables, the three old method icons, and the Headroom probe chart. Visual design of smoothness labels, best markers, linked panes, and Target checks | M4.3 gate |
 
 ---
 
 ## History
+
+## 2026-10-08 — M4.2 Lab reset and foundations — completed (waiting for user review)
+
+**Scope:** data reset, removal of the old test methods, new schema, Objects, Targets, and the three motion scenarios in the engine (`PROJECT.md` M4.2).
+**Done:**
+- Data reset (D40, D53), after two separate user confirmations. Backup in `storage/app/private/backups/2026-10-07-redesign/`: `test-data.json` (3 sessions, 6 session assets, 3 runs, 30 results, 52 budget evaluations), `asset-data.json` (40 assets, 40 metrics, 3 upload sessions, 60 upload items), `asset-files/` (80 files). Then deleted from `render_lab`: those rows and the 80 files. Users (1), tools (3), device classes (11), and option presets were kept.
+- Removed: Comparison, Stress, and Headroom pages, routes, controllers, requests, JS runners (`three/methods/*`), `lab-config.js`, `budget-step.js`, `benchmark-run.js`, `results.js`, the benchmark page, the results partials, `BudgetEvaluator`, `TestSessionService`, `TestResultPresenter`, budget presets, budget evaluations, the instance-step list, and their tests. `POST /api/tests` and `POST /api/runs/{run}/results` return with M4.3/M4.4. The run lifecycle (start, invalidate, cancel, expiry) stays.
+- Schema (`2026_10_08_000100_lab_redesign`): `objects`, `assets.object_id`, `targets` + `device_class_target`, new `test_sessions` / `test_session_assets` / `test_results`, `target_checks`. Migrated on `render_lab` and `render_lab_verify`; rollback tested on `render_lab_verify`.
+- Objects: admin list; required Object column with bulk apply in bulk upload; Object on asset edit, detail, card, library table and filter, selector filter and label, search API. Fixture objects (Apple, Chicken, Book) come from the fixture register.
+- Targets: admin list with structured fields and device class links; 4 seed Targets (`BENCHMARK.md` §6.2); shared Target step (`components/performance/target-step`, `TargetStep`, `target-step.js`); `Smoothness` (labels) and `TargetEvaluator` (Load, Smooth per motion, File size) on the server; the same label rule in `three/smoothness.js`.
+- Motion engine (`three/motion.js`, `cannon-es` 0.20.0): Static, Spin (180°/s), Physics (simplified convex hull ≤ 32 points via farthest-point sampling, open kinematic box, seeded drop, 1.5 Hz shake, one 1/60 s step per frame). `measure.js` records physics time separately (`physics_p50_ms`, `physics_p95_ms`, physics samples) and uses the goal frame time from the Target for stutter. Seeded random moved to `three/random.js`.
+- Engine self-test `/_engine` (local only): motion checkboxes, Target step, a label per motion, hull size, physics determinism replay.
+- Lab page and sidebar: Side-by-Side (M4.3), Crowd (M4.4), and Tool summary (M4.5) shown as coming. Dashboard quick action links to the Lab. `/results/{test}` shows the test record until the results views exist.
+**Decisions:**
+- Physics warm-up lasts at least 2 s and at least 120 physics steps, so the shake starts at the same simulation step on every device (`BENCHMARK.md` §4.2) — agent, for review.
+- The old migration `2026_10_04_000100` stays in place (it already ran); the redesign migration pauses foreign key checks while it rebuilds the test tables, because `reports` refers to `test_sessions` (both empty) — agent-routine.
+- New icons from the existing Phosphor set: `users-three` (Crowd), `scales` (Tool summary), `shapes` (Objects), `flask` (Lab quick action) — agent, for review at the M4.3 design question (Q9).
+- The public sample report pages still use the old budget table and method names (sample data). Their definitions moved to `SampleReports`; they are rebuilt with Targets in M4.6 — agent, for review.
+**Checks:**
+- PHP: 156 tests pass (745 assertions), including new `SmoothnessTest`, `TargetEvaluatorTest`, Object filter and required-field tests, Target admin tests, lifecycle tests. Pint clean.
+- JS: `npm run test:js` 13 pass (smoothness edges; spin speed; hull ≤ 32 points and valid faces; a box hull keeps 8 corners; same physics states in two runs with one seed; physics time reported; objects stay in the shaken box). No cannon-es normal warnings.
+- Build: `npm run build` passes. The entry bundle contains neither Three.js (`WebGLRenderer`) nor cannon-es (`ConvexPolyhedron`); cannon-es is only in the self-test chunk.
+- Engine self-test (local, headless Chrome, Apple M2, Metal, 60 Hz, Target Desktop 60 fps): completed; Static / Spin / Physics all Smooth (p95 16.8 / 16.7 / 16.7 ms, 0% stutter, work p95 0.5 / 0.2 / 0.3 ms); physics p95 1.4 ms with 301 samples; hull 31 points, 58 faces, built in 6 ms; determinism replay identical after 421 steps; 0 DOM mutations during the windows; memory back to baseline; no console errors.
+- Browser (verification environment, headless Chrome) at 1440, 768, 384 wide: Lab, Objects list and form, Targets list and form, upload, library table, asset detail and edit, dashboard — no horizontal page scroll, no console errors.
+- Working database after migration: 4 Targets, 9 device class links, 0 objects, 0 assets.
+**Issues:**
+- `render_lab` has no objects yet. An admin must add the research plan's objects (Administration → Objects) before uploading, because Object is required.
+- The bulk-apply of Object in the upload table was checked by feature tests (server), not by a browser drop test in this milestone.
+- `DESIGN.md` is not updated yet (Q9): "no winner markers", old method icons, budget table, probe chart.
+- Phone self-test (M4.1) is still open.
+**Files:** `database/migrations/2026_10_08_000100_lab_redesign.php`; `app/Models/{AssetObject,Target,TargetCheck}.php`; `app/Services/{TargetEvaluator,RunResultService}.php`; `app/Support/{Smoothness,TargetStep,MetricDefinitions,OptionLists,SampleReports}.php`; `database/seeders/TargetSeeder.php`; `resources/js/three/{motion,smoothness,random,measure}.js`; `resources/js/features/{engine-self-test,target-step,upload,asset-selector}.js`; `resources/views/components/performance/target-step.blade.php`; asset, upload, admin, lab, and results views; `tests/Unit/{SmoothnessTest,TargetEvaluatorTest}.php`; `tests/js/{smoothness,motion}.test.mjs`; `package.json` (`cannon-es`).
+**Next:** M4.3 Side-by-Side Test (not started; asks the visual design question Q9 at its gate).
+
+## 2026-10-07 — Test redesign: specification rewrite — completed (waiting for user review)
+
+**Scope:** replace the Comparison, Stress, and Headroom tests with a visual, interactive test scheme, based on the user's feedback that the old tests did not show the assets, could not be interacted with, and that Headroom and the 9-item budget were hard to understand.
+**Done:** `BENCHMARK.md` rewritten (principles, motion scenarios, Side-by-Side, smoothness labels, best markers, Crowd, Tool summary, Targets, later methods, limitations). `PRD.md` updated (goals, non-goals, product areas, Object, methods, Targets, Lab flow, tool and object selection, results views, dashboard, reports, option lists, data model, endpoints, success criteria). `PROJECT.md` milestones M4.2–M4.6 replaced. `SITEMAP.md` routes, navigation, views, public data. `AGENT.md` approved dependency `cannon-es`, code structure. `DEPLOYMENT.md` seeder note and smoke test. No code changed. No data deleted.
+**Decisions:** D39–D51 (see the decision table) — user. Agent proposals inside the rewrite, for review: "Loads in time" uses the median cold time to first frame; Crowd camera auto-frames each probe (the old Stress rule kept the camera fixed for all steps); one physics step of 1/60 s per frame for determinism; hull reduced to at most 32 points; physics box sizes and shake (1.5 Hz, 0.15 × box width); best markers only when spreads do not overlap ("Too close to call"); "Lightest to draw" marker (render work time) because frame interval is capped by the display; Crowd run expiry = estimate + 15 minutes; Tool summary uses the most recent valid result per asset on the selected device class.
+**Checks:** none (documentation only). The old docs are kept in the session scratchpad for comparison.
+**Issues:** open questions Q7, Q8, Q9. Crowd runs can be long (several assets × three motion scenarios × repetitions); the estimated time is shown before the run.
+**Files:** `docs/BENCHMARK.md`, `docs/PRD.md`, `docs/PROJECT.md`, `docs/SITEMAP.md`, `docs/AGENT.md`, `docs/DEPLOYMENT.md`, `docs/LOG.md`.
+**Next:** M4.2 Lab reset and foundations (not started; needs answers to Q7 and Q8 and explicit approval).
 
 ## 2026-10-07 — Fix: dates shown in the local zone (D38) — completed
 

@@ -30,13 +30,14 @@ This file is the authority for build order, milestone scope, and acceptance crit
 |                                | M3.2 Bulk upload                  | Dropzone, staging, metadata table, bulk apply, registration                                        |
 |                                | M3.3 Library and asset detail     | Search/filter/sort, detail with preview, edit, delete/restore                                      |
 | **M4 Performance Lab**         | M4.1 Benchmark engine             | Benchmark mode, measurement loop, environment and device class, budgets, run lifecycle, result API |
-|                                | M4.2 Comparison Test              | Selector modal, configuration, execution, results view                                             |
-|                                | M4.3 Stress Test                  | Repeated and Mixed scenarios, steps, results view                                                  |
-|                                | M4.4 Headroom Test                | Search procedure, results view                                                                     |
-|                                | M4.5 Results, reports, publishing | History, detail, report editor, publish, public reproduction, export                               |
+|                                | M4.2 Lab reset and foundations    | Remove old tests and data, Objects, Targets, motion scenarios (Static, Spin, Physics) in the engine |
+|                                | M4.3 Side-by-Side Test            | Linked panes, look phase, measure phase, results on the panes, best markers                        |
+|                                | M4.4 Crowd Test                   | Per asset and Per tool, visible search, explore viewer, results                                    |
+|                                | M4.5 Tool summary                 | Tool and object selection, per-tool medians, Target check counts, best markers                     |
+|                                | M4.6 Results, reports, publishing | History, detail, report editor, publish, public reproduction, export                               |
 | **M5 Finalization**            | M5.1 Hardening and QA             | Security, authorization, public boundary, accessibility, responsive, benchmark integrity           |
 |                                | M5.2 Deployment                   | Production config, build, Hostinger deployment, smoke test, documentation                          |
-| **Later Versions**             | L1–L5                             | Camera Path, Device Matrix, Visual Check, InstancedMesh mode, Markdown/PDF export                  |
+| **Later Versions**             | L1–L5                             | Camera Path scenario, Device Matrix, Visual Check, InstancedMesh mode, Markdown/PDF export         |
 
 ---
 
@@ -224,37 +225,67 @@ This file is the authority for build order, milestone scope, and acceptance crit
 - No DOM changes during a window (verify with a mutation observer in the self-test).
 - Budget evaluation unit tests cover Pass, Fail, Not measured, disabled items.
 
-### M4.2 — Comparison Test
+> **Redesign (2026-10-07, decisions D39–D51 in `LOG.md`).** The original M4.2 Comparison, M4.3 Stress, and M4.4 Headroom were built and then replaced by the milestones below. The M4.1 engine (measure loop, loaders, run guard, device class, run lifecycle) stays.
 
-**Scope** — Asset Selector modal (`PRD.md` §8.2); comparison configuration; execution per `BENCHMARK.md` §4.2 (cold/warm load, warm-up, window, repetitions, shuffle, cool-down); results view.
+### M4.2 — Lab reset and foundations
 
-**Acceptance**
+**Scope**
 
-- Configure without typing IDs; selection persists across search and filter.
-- Three Bird fixtures run with 3 repetitions; results show median and spread, load phases, budget table.
-- Default order of results is the selection order.
+- **Data reset (decision D40).** Export a JSON backup of `test_sessions`, `test_session_assets`, `test_runs`, `test_results`, and `budget_evaluations` from `render_lab` into `storage/app/private/backups/`. Show the exact row counts and ask the user for a final confirmation. Only then delete those rows.
+- **Asset reset (decision D53).** After the test data is gone: back up the asset rows (`assets`, `asset_metrics`, linked `upload_items`, `upload_sessions`) as JSON and copy `storage/app/private/assets/` into the same backup folder. Show the exact list and ask for a final confirmation. Only then permanently delete all assets with their files, and the upload sessions and items. Users, tools, presets, and device classes are not touched.
+- **Remove the old methods:** Comparison, Stress, and Headroom pages, JS method runners, budget step, results partials, the 9-item budget evaluation, the budget preset form, the instance-step option list, and their feature tests.
+- **Schema:** `objects` list and `assets.object_id`; `targets` + `device_class_target` (replacing budget presets, seeded from `BENCHMARK.md` §6.2); `test_sessions`, `test_session_assets`, `test_results`, `target_checks` as in `PRD.md` §12.
+- **Objects:** admin option list; Object column and bulk apply in bulk upload; Object on asset edit, detail, library filter, and selector.
+- **Targets:** admin option list with structured fields; the Target step component (select + adjust) shared by both methods; server-side smoothness labels and Target checks (`BENCHMARK.md` §4.4, §6).
+- **Motion scenarios in the engine:** Static, Spin, Physics (`cannon-es`, dynamic import; simplified convex hull colliders; open box; deterministic drop and shake) as per-frame update functions of the measure loop; physics time recorded separately.
+- The local-only engine self-test page runs one fixture in each motion scenario and shows the raw summaries and the smoothness label.
 
-### M4.3 — Stress Test
-
-**Scope** — `BENCHMARK.md` §4.3: repeated and mixed scenarios, same-tool rule (UI + server), step presets, fixed camera for largest step, results with chart and per-step budget.
-
-**Acceptance**
-
-- Mixed selection with two tools: Run is disabled with a message, and the API rejects a forced request.
-- The scene uses one renderer and one scene for all steps (verify in the engine).
-- The chart shows p95 interval and work time against instance count with the budget line.
-
-### M4.4 — Headroom Test
-
-**Scope** — `BENCHMARK.md` §4.4: doubling + binary search, pass criterion, cap, time limit, repeated and mixed scenarios, results with probe chart.
+**Not in scope:** the Side-by-Side and Crowd pages, Tool summary, reports.
 
 **Acceptance**
 
-- On desktop, a light fixture reaches a higher headroom value than a heavy fixture (sanity check, not a rule).
+- The backup exists and its row and file counts match the confirmation; the old test rows, the assets, their files, and the upload records are gone; users, tools, presets, and device classes are unchanged.
+- No route, view, JS module, or test of the old methods remains; `npm run build` passes and the entry bundle contains neither Three.js nor cannon-es.
+- An asset can be uploaded with an Object; the library filters by Object.
+- The four seed Targets exist with their device class links; a Target that a device class links to can be deactivated, not deleted.
+- Unit tests: smoothness label rules (Smooth / Mostly smooth / Choppy edges) and Target checks (Pass, Fail, Not measured).
+- Self-test: the Physics scenario gives the same instance positions after N steps in two runs (determinism); physics time is recorded and separate from render work time.
+
+### M4.3 — Side-by-Side Test
+
+**Scope** — `BENCHMARK.md` §4.3: selector (2–4 assets), look phase (linked panes, shared camera, motion switch, Shake, reset, fullscreen), configuration (motion scenarios, settings, Target, estimated run time), measure phase (one asset at a time, the others frozen, cold/warm load, each selected scenario), results on the panes (Target checks, smoothness labels, best markers with the "Too close to call" rule), value table, load-phase bars, Technical details. **Ask** at the gate: the visual design of the smoothness labels and best markers (`DESIGN.md`).
+
+**Acceptance**
+
+- Rotating one pane rotates all panes; the panes work with mouse, touch, and keyboard.
+- During measurement only one pane renders (verify in the engine) and no DOM mutation happens during a window (mutation observer in a test page).
+- Three Bird fixtures, 3 repetitions, all three motion scenarios: results show the labels per scenario, the Target checks, and the median and spread.
+- A best marker is not shown when the spreads overlap.
+- Default order of the panes and the table is the selection order.
+
+### M4.4 — Crowd Test
+
+**Scope** — `BENCHMARK.md` §4.6: Per asset and Per tool scenarios, tool and object selection (`PRD.md` §8.3), the visible search with the progress strip between probes, cap and time limit, results (bars per motion scenario with Most copies, probe chart), the explore viewer with a copy-count slider.
+
+**Acceptance**
+
+- Per tool lists only objects present in every selected tool, lists the missing ones, and the API rejects a forced request with a missing object.
+- The crowd is visible on the canvas while the search runs; the strip changes only between probes.
+- On desktop, a light fixture reaches more copies than a heavy fixture (sanity check, not a rule).
 - The cap and time limit stop the search and record the flags.
-- The probe chart marks pass/fail with shape and label, not color only.
+- The probe chart marks the labels by shape and text, not color only.
 
-### M4.5 — Results, reports, publishing
+### M4.5 — Tool summary
+
+**Scope** — `BENCHMARK.md` §4.7 and `PRD.md` §8.3: device class and tool selection, common objects, per-tool medians, Target check counts, copies, Tool crowd results, best markers, links to the source tests, "Not tested" cells.
+
+**Acceptance**
+
+- With seeded verification results for two tools, the medians and counts match a manual calculation (feature test).
+- An object missing in one tool is excluded and listed.
+- Every value links to the test it came from.
+
+### M4.6 — Results, reports, publishing
 
 **Scope** — `PRD.md` §10: history with filters; test detail; JSON/CSV export; report editor (question, limitations, conclusion, public asset approval); publish/unpublish with slug and tokens; public gallery and detail with real data; public reproduction (`DESIGN.md` §11); `PublicReportPresenter`.
 
@@ -286,11 +317,11 @@ These items are planned. Do not start them before M5.2 is complete and the user 
 
 | ID  | Item                    | Summary                                                                                      | Depends on |
 | --- | ----------------------- | -------------------------------------------------------------------------------------------- | ---------- |
-| L1  | Camera Path Test        | Scripted orbit and dolly; metrics as a time series along the path (`BENCHMARK.md` §8.1)      | M4.1       |
-| L2  | Device Matrix           | One session, runs from several devices; report grouped by device class (`BENCHMARK.md` §8.2) | M4.5       |
-| L3  | Visual Check            | Fixed-angle screenshots side by side in reports (`BENCHMARK.md` §8.3)                        | M4.2, M4.5 |
-| L4  | InstancedMesh mode      | Second instance mode for Stress and Headroom (`BENCHMARK.md` §8.4)                           | M4.3, M4.4 |
-| L5  | Markdown and PDF export | Report export formats                                                                        | M4.5       |
+| L1  | Camera Path scenario    | Scripted orbit and dolly as a fourth motion scenario; time series along the path (`BENCHMARK.md` §8.1) | M4.2       |
+| L2  | Device Matrix           | One session, runs from several devices; report grouped by device class (`BENCHMARK.md` §8.2) | M4.6       |
+| L3  | Visual Check            | Fixed-angle screenshots side by side in reports (`BENCHMARK.md` §8.3)                        | M4.3, M4.6 |
+| L4  | InstancedMesh mode      | Second instance mode for the Crowd Test (`BENCHMARK.md` §8.4)                                | M4.4       |
+| L5  | Markdown and PDF export | Report export formats                                                                        | M4.6       |
 
 Each Later Version item gets its own gate, scope, and acceptance criteria written in this file before it starts.
 

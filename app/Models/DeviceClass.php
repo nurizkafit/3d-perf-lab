@@ -14,8 +14,8 @@ class DeviceClass extends Model
         return ['is_active' => 'boolean'];
     }
 
-    public function budgetPresets(): BelongsToMany
+    public function targets(): BelongsToMany
     {
-        return $this->belongsToMany(BudgetPreset::class);
+        return $this->belongsToMany(Target::class);
     }
 }

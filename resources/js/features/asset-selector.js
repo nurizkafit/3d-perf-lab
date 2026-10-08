@@ -6,6 +6,7 @@ export default (max = 8) => ({
     max,
     query: '',
     tool: '',
+    object: '',
     format: '',
     author: '',
     results: [],
@@ -32,7 +33,7 @@ export default (max = 8) => ({
 
     async search() {
         this.loading = true;
-        const params = new URLSearchParams({ q: this.query, tool: this.tool, format: this.format, author: this.author });
+        const params = new URLSearchParams({ q: this.query, tool: this.tool, object: this.object, format: this.format, author: this.author });
         try {
             const body = await apiFetch(`${this.$root.dataset.endpoint ?? '/api/assets'}?${params}`);
             this.results = body.assets;

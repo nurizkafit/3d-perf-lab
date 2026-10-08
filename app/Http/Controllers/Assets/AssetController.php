@@ -9,6 +9,7 @@ use App\Http\Requests\Assets\ForceDeleteAssetRequest;
 use App\Http\Requests\Assets\RestoreAssetRequest;
 use App\Http\Requests\Assets\UpdateAssetRequest;
 use App\Models\Asset;
+use App\Models\AssetObject;
 use App\Models\Tool;
 use App\Models\User;
 use App\Services\AssetDeletionService;
@@ -34,9 +35,10 @@ class AssetController extends Controller
 
         return view('pages.assets.index', [
             // withCount after apply(): apply() sets select('assets.*'), which would drop the count column.
-            'assets' => $filters->apply(Asset::query()->with(['tool', 'metrics', 'uploader']))->withCount('testSessions')->paginate(24)->withQueryString(),
+            'assets' => $filters->apply(Asset::query()->with(['tool', 'object', 'metrics', 'uploader']))->withCount('testSessions')->paginate(24)->withQueryString(),
             'filters' => $filters,
             'tools' => Tool::orderBy('sort_order')->pluck('name', 'id')->all(),
+            'objects' => AssetObject::orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'uploaders' => User::whereIn('id', Asset::withTrashed()->select('uploaded_by'))->orderBy('name')->pluck('name', 'id')->all(),
             'canForceDelete' => $request->user()->can('forceDeleteAny', Asset::class),
             // Users can bulk-delete their own assets; in the deleted list only admins have an action.
@@ -47,7 +49,7 @@ class AssetController extends Controller
     public function show(Request $request, Asset $asset): View
     {
         Gate::authorize('view', $asset);
-        $asset->load(['tool', 'metrics', 'uploader']);
+        $asset->load(['tool', 'object', 'metrics', 'uploader']);
         $user = $request->user();
 
         // Tests the viewer may open: their own, or all for an admin (PRD.md §4).
@@ -71,6 +73,7 @@ class AssetController extends Controller
         return view('pages.assets.edit', [
             'asset' => $asset,
             'tools' => Tool::where('is_active', true)->orWhere('id', $asset->tool_id)->orderBy('sort_order')->pluck('name', 'id')->all(),
+            'objects' => AssetObject::where('is_active', true)->orWhere('id', $asset->object_id)->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
         ]);
     }
 

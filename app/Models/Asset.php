@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
-    'name', 'tool_id', 'author', 'uploaded_by', 'description', 'production_time_hours',
+    'name', 'tool_id', 'object_id', 'author', 'uploaded_by', 'description', 'production_time_hours',
     'format', 'web_file_path', 'thumbnail_path', 'file_size', 'sha256',
 ])]
 class Asset extends Model
@@ -28,6 +28,11 @@ class Asset extends Model
     public function tool(): BelongsTo
     {
         return $this->belongsTo(Tool::class);
+    }
+
+    public function object(): BelongsTo
+    {
+        return $this->belongsTo(AssetObject::class, 'object_id');
     }
 
     public function metrics(): HasOne

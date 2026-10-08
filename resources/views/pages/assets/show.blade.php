@@ -1,5 +1,5 @@
 @php
-    $methods = \App\Support\SampleReports::METHODS;
+    $methods = \App\Support\MetricDefinitions::METHODS;
     $fileUrl = route('assets.file', [$asset, basename($asset->web_file_path)]);
 @endphp
 <x-layouts::app :title="$asset->name" :description="$asset->tool->name.' · '.$asset->author" :sample="false">
@@ -37,6 +37,7 @@
             <dl class="grid grid-cols-[minmax(0,auto)_1fr] gap-x-4 gap-y-2 text-body-sm">
                 <dt class="text-neutral-600">Name</dt><dd>{{ $asset->name }}</dd>
                 <dt class="text-neutral-600">Tool</dt><dd>{{ $asset->tool->name }}</dd>
+                <dt class="text-neutral-600">Object</dt><dd>{{ $asset->object?->name ?? '—' }}</dd>
                 <dt class="text-neutral-600">Author</dt><dd>{{ $asset->author }}</dd>
                 <dt class="text-neutral-600">Uploaded by</dt><dd>{{ $asset->uploader->name }}</dd>
                 <dt class="text-neutral-600">Production time</dt><dd class="num">{{ rtrim(rtrim($asset->production_time_hours, '0'), '.') }} h</dd>

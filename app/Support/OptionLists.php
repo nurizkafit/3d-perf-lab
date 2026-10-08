@@ -2,9 +2,10 @@
 
 namespace App\Support;
 
-use App\Models\BudgetPreset;
+use App\Models\AssetObject;
 use App\Models\DeviceClass;
 use App\Models\OptionPreset;
+use App\Models\Target;
 use App\Models\Tool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
- * The eight admin-managed option lists (PRD.md §11): which model stores each list,
+ * The admin-managed option lists (PRD.md §11): which model stores each list,
  * its structured form fields, validation, and the "in use" check.
  * Values are always entered through fields; the admin never types JSON.
  */
@@ -20,13 +21,13 @@ class OptionLists
 {
     public const LISTS = [
         'tools' => ['label' => 'Authoring tools', 'singular' => 'tool', 'model' => Tool::class, 'default' => false],
+        'objects' => ['label' => 'Objects', 'singular' => 'object', 'model' => AssetObject::class, 'default' => false],
         'camera' => ['label' => 'Camera presets', 'singular' => 'camera preset', 'model' => OptionPreset::class, 'type' => 'camera', 'default' => true],
         'lighting' => ['label' => 'Lighting presets', 'singular' => 'lighting preset', 'model' => OptionPreset::class, 'type' => 'lighting', 'default' => true],
         'background' => ['label' => 'Background presets', 'singular' => 'background preset', 'model' => OptionPreset::class, 'type' => 'background', 'default' => true],
         'resolution' => ['label' => 'Resolution presets', 'singular' => 'resolution preset', 'model' => OptionPreset::class, 'type' => 'resolution', 'default' => true],
-        'instance-steps' => ['label' => 'Instance steps', 'singular' => 'instance step preset', 'model' => OptionPreset::class, 'type' => 'instance_steps', 'default' => true],
         'device-classes' => ['label' => 'Device classes', 'singular' => 'device class', 'model' => DeviceClass::class, 'default' => false],
-        'budgets' => ['label' => 'Budget presets', 'singular' => 'budget preset', 'model' => BudgetPreset::class, 'default' => true],
+        'targets' => ['label' => 'Targets', 'singular' => 'Target', 'model' => Target::class, 'default' => true],
     ];
 
     public const CATEGORIES = ['desktop' => 'Desktop', 'laptop' => 'Laptop', 'tablet' => 'Tablet', 'phone' => 'Phone'];
@@ -38,9 +39,6 @@ class OptionLists
         'neutral-0' => 'Neutral 0 (white)', 'neutral-50' => 'Neutral 50', 'neutral-100' => 'Neutral 100',
         'neutral-200' => 'Neutral 200', 'neutral-800' => 'Neutral 800', 'primary-tint' => 'Primary tint',
     ];
-
-    /** Maximum instances per step (BENCHMARK.md §4.3). */
-    public const MAX_INSTANCES = 500;
 
     public static function exists(string $list): bool
     {
@@ -83,7 +81,7 @@ class OptionLists
         $rules = ['name' => ['required', 'string', 'max:100', $unique]];
 
         return $rules + match ($list) {
-            'tools' => [],
+            'tools', 'objects' => [],
             'camera' => [
                 'fov' => ['required', 'numeric', 'between:10,120'],
                 'position_mode' => ['required', Rule::in(['auto_frame', 'fixed'])],
@@ -106,28 +104,15 @@ class OptionLists
                 'width' => ['required', 'integer', 'between:320,3840'],
                 'height' => ['required', 'integer', 'between:320,3840'],
             ],
-            'instance-steps' => [
-                'steps' => ['required', 'string', 'regex:/^\s*\d+(\s*,\s*\d+)*\s*$/', function ($attribute, $value, $fail) {
-                    $steps = self::parseSteps($value);
-                    if ($steps !== array_values(array_unique($steps)) || $steps !== self::sorted($steps)) {
-                        $fail('List the counts in ascending order without repeats.');
-                    }
-                    if (min($steps) < 1 || max($steps) > self::MAX_INSTANCES) {
-                        $fail('Each count must be between 1 and '.self::MAX_INSTANCES.'.');
-                    }
-                }],
-            ],
             'device-classes' => [
                 'category' => ['required', Rule::in(array_keys(self::CATEGORIES))],
                 'platform' => ['required', Rule::in(array_keys(self::PLATFORMS))],
             ],
-            'budgets' => [
+            'targets' => [
                 'device_class_ids' => ['array'],
                 'device_class_ids.*' => ['integer', Rule::exists('device_classes', 'id')],
-                'items' => ['required', 'array'],
-                ...collect(MetricDefinitions::BUDGET_ITEMS)->flatMap(fn ($item, $key) => [
-                    "items.{$key}.enabled" => ['boolean'],
-                    "items.{$key}.limit" => ["required_if_accepted:items.{$key}.enabled", 'nullable', 'numeric', 'gt:0', 'max:1000000'],
+                ...collect(MetricDefinitions::TARGET_FIELDS)->mapWithKeys(fn ($field, $key) => [
+                    $key => ['required', 'numeric', "between:{$field['min']},{$field['max']}", ...($key === 'target_fps' ? ['integer'] : [])],
                 ])->all(),
             ],
         };
@@ -141,8 +126,8 @@ class OptionLists
             'azimuth_deg' => 'azimuth', 'ambient_intensity' => 'ambient intensity', 'color_token' => 'color',
             'lights.*.intensity' => 'light intensity', 'lights.*.elevation_deg' => 'light elevation', 'lights.*.azimuth_deg' => 'light azimuth',
         ];
-        foreach (MetricDefinitions::BUDGET_ITEMS as $key => $item) {
-            $names["items.{$key}.limit"] = strtolower($item['label']).' limit';
+        foreach (MetricDefinitions::TARGET_FIELDS as $key => $field) {
+            $names[$key] = strtolower($field['label']);
         }
 
         return $names;
@@ -175,7 +160,6 @@ class OptionLists
                 ],
                 'background' => ['color_token' => $input['color_token']],
                 'resolution' => ['width' => (int) $input['width'], 'height' => (int) $input['height']],
-                'instance-steps' => ['steps' => self::parseSteps($input['steps'])],
             };
         }
 
@@ -183,11 +167,12 @@ class OptionLists
             $attributes += ['category' => $input['category'], 'platform' => $input['platform']];
         }
 
-        if ($list === 'budgets') {
-            $attributes['items_json'] = collect(MetricDefinitions::BUDGET_ITEMS)->mapWithKeys(fn ($item, $key) => [$key => [
-                'enabled' => (bool) ($input['items'][$key]['enabled'] ?? false),
-                'limit' => isset($input['items'][$key]['limit']) && $input['items'][$key]['limit'] !== '' ? (float) $input['items'][$key]['limit'] : null,
-            ]])->all();
+        if ($list === 'targets') {
+            $attributes += [
+                'max_load_s' => (float) $input['max_load_s'],
+                'target_fps' => (int) $input['target_fps'],
+                'max_file_size_mb' => (float) $input['max_file_size_mb'],
+            ];
         }
 
         return $attributes;
@@ -211,13 +196,12 @@ class OptionLists
             ],
             'background' => ['color_token' => $values['color_token'] ?? 'neutral-100'],
             'resolution' => ['width' => $values['width'] ?? 1280, 'height' => $values['height'] ?? 720],
-            'instance-steps' => ['steps' => implode(', ', $values['steps'] ?? [1, 5, 10, 25, 50])],
             'device-classes' => ['category' => $item?->category ?? 'phone', 'platform' => $item?->platform ?? 'any'],
-            'budgets' => [
+            'targets' => [
                 'device_class_ids' => $item?->deviceClasses->pluck('id')->all() ?? [],
-                'items' => collect(MetricDefinitions::BUDGET_ITEMS)->mapWithKeys(fn ($definition, $key) => [
-                    $key => $item?->items_json[$key] ?? ['enabled' => false, 'limit' => null],
-                ])->all(),
+                'max_load_s' => $item?->max_load_s ?? 3,
+                'target_fps' => $item?->target_fps ?? 60,
+                'max_file_size_mb' => $item?->max_file_size_mb ?? 20,
             ],
             default => [],
         };
@@ -229,16 +213,15 @@ class OptionLists
         $v = $item->values_json ?? [];
 
         return match ($list) {
-            'tools' => '—',
+            'tools', 'objects' => '—',
             'camera' => sprintf('FOV %s° · %s · distance %s · %s° / %s°', $v['fov'], $v['position_mode'] === 'fixed' ? 'fixed' : 'auto-frame', $v['distance_factor'], $v['elevation_deg'], $v['azimuth_deg']),
             'lighting' => sprintf('Ambient %s · %d directional · environment map %s', $v['ambient_intensity'], count($v['directional_lights'] ?? []), ($v['environment_map'] ?? false) ? 'on' : 'off'),
             'background' => self::BACKGROUND_TOKENS[$v['color_token']] ?? $v['color_token'],
             'resolution' => "{$v['width']} × {$v['height']}",
-            'instance-steps' => implode(' / ', $v['steps'] ?? []),
             'device-classes' => self::CATEGORIES[$item->category].' · '.self::PLATFORMS[$item->platform],
-            'budgets' => sprintf('%d device %s · %d of %d items enabled',
-                $item->deviceClasses->count(), $item->deviceClasses->count() === 1 ? 'class' : 'classes',
-                collect($item->items_json)->where('enabled', true)->count(), count(MetricDefinitions::BUDGET_ITEMS)),
+            'targets' => sprintf('Loads in ≤ %s s · Smooth at %d fps · File ≤ %s MB · %d device %s',
+                rtrim(rtrim(number_format($item->max_load_s, 2), '0'), '.'), $item->target_fps, rtrim(rtrim(number_format($item->max_file_size_mb, 2), '0'), '.'),
+                $item->deviceClasses->count(), $item->deviceClasses->count() === 1 ? 'class' : 'classes'),
         };
     }
 
@@ -250,23 +233,11 @@ class OptionLists
     {
         return match ($list) {
             'tools' => DB::table('assets')->where('tool_id', $item->id)->exists()
-                || DB::table('test_sessions')->where('tool_constraint_id', $item->id)->exists(),
+                || DB::table('test_session_assets')->where('group_tool_id', $item->id)->exists(),
+            'objects' => DB::table('assets')->where('object_id', $item->id)->exists(),
             'device-classes' => DB::table('test_runs')->where('device_class_id', $item->id)->exists()
-                || DB::table('budget_preset_device_class')->where('device_class_id', $item->id)->exists(),
+                || DB::table('device_class_target')->where('device_class_id', $item->id)->exists(),
             default => false,
         };
-    }
-
-    /** @return list<int> */
-    public static function parseSteps(string $value): array
-    {
-        return array_map('intval', array_map('trim', explode(',', $value)));
-    }
-
-    private static function sorted(array $steps): array
-    {
-        sort($steps);
-
-        return $steps;
     }
 }

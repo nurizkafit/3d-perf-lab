@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Assets;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Models\AssetObject;
 use App\Models\Tool;
 use App\Models\UploadItem;
 use App\Models\UploadSession;
@@ -54,6 +55,7 @@ class UploadController extends Controller
             'session' => $session,
             'items' => collect(),
             'tools' => Tool::where('is_active', true)->orderBy('sort_order')->pluck('name', 'id')->all(),
+            'objects' => AssetObject::where('is_active', true)->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'canSetAuthor' => $user->can('setAuthor', Asset::class),
             'maxBytes' => UploadService::maxBytes(),
         ];

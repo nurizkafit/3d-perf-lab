@@ -21,6 +21,7 @@
         <div class="grid items-end gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))]">
             <x-ui.input name="q" label="Search" type="search" :value="$v['q']" placeholder="Name, author, description" />
             <x-ui.select name="tool" label="Tool" :options="$tools" :value="$v['tool']" placeholder="All tools" />
+            <x-ui.select name="object" label="Object" :options="$objects" :value="$v['object']" placeholder="All objects" />
             <x-ui.select name="format" label="Format" :options="['glb' => 'GLB', 'gltf' => 'GLTF']" :value="$v['format']" placeholder="All formats" />
             <x-ui.select name="uploaded_by" label="Uploaded by" :options="$uploaders" :value="$v['uploaded_by']" placeholder="Anyone" />
             <x-ui.select name="sort" label="Sort" :options="$sorts" :value="$v['sort']" />
@@ -103,7 +104,7 @@
                             @if ($v['bulk'])
                                 <th scope="col" class="w-10"><input type="checkbox" class="input" aria-label="Select all assets on this page" :checked="allSelected" x-on:change.stop="toggleAll($event.target.checked)"></th>
                             @endif
-                            <th scope="col">Asset</th><th scope="col">Tool</th><th scope="col">Author</th><th scope="col">Format</th><th scope="col" data-numeric>Size</th><th scope="col" data-numeric>Triangles</th><th scope="col">Uploaded by</th><th scope="col" data-numeric>Uploaded</th>
+                            <th scope="col">Asset</th><th scope="col">Tool</th><th scope="col">Object</th><th scope="col">Author</th><th scope="col">Format</th><th scope="col" data-numeric>Size</th><th scope="col" data-numeric>Triangles</th><th scope="col">Uploaded by</th><th scope="col" data-numeric>Uploaded</th>
                             @if ($v['bulk'])<th scope="col">Tests</th>@endif
                         </tr>
                     </x-slot:head>
@@ -128,6 +129,7 @@
                                 </a>
                             </th>
                             <td>{{ $asset->tool->name }}</td>
+                            <td>{{ $asset->object?->name ?? '—' }}</td>
                             <td>{{ $asset->author }}</td>
                             <td><x-ui.badge>{{ strtoupper($asset->format) }}</x-ui.badge></td>
                             <td data-numeric>{{ \Illuminate\Support\Number::fileSize($asset->file_size, maxPrecision: 1) }}</td>

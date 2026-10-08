@@ -34,9 +34,9 @@ class TestRun extends Model
         return $this->hasMany(TestResult::class);
     }
 
-    public function evaluations(): HasMany
+    public function checks(): HasMany
     {
-        return $this->hasMany(BudgetEvaluation::class);
+        return $this->hasMany(TargetCheck::class);
     }
 
     /** A run expires config('lab.run_expiry_minutes') after start (BENCHMARK.md §5). */

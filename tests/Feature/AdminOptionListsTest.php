@@ -3,9 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Asset;
-use App\Models\BudgetPreset;
+use App\Models\AssetObject;
 use App\Models\DeviceClass;
 use App\Models\OptionPreset;
+use App\Models\Target;
 use App\Models\Tool;
 use App\Models\User;
 use App\Support\OptionLists;
@@ -38,7 +39,7 @@ class AdminOptionListsTest extends TestCase
     public function test_forms_have_no_raw_json_field(): void
     {
         foreach (array_keys(OptionLists::LISTS) as $list) {
-            $this->get("/admin/options/{$list}/create")->assertDontSee('values_json')->assertDontSee('items_json');
+            $this->get("/admin/options/{$list}/create")->assertDontSee('values_json')->assertDontSee('items_json')->assertDontSee('target_json');
         }
     }
 
@@ -63,7 +64,28 @@ class AdminOptionListsTest extends TestCase
         $this->assertFalse($tool->fresh()->is_active);
     }
 
-    public function test_a_device_class_linked_to_a_budget_preset_cannot_be_deleted(): void
+    public function test_an_object_used_by_an_asset_cannot_be_deleted_only_deactivated(): void
+    {
+        $object = AssetObject::where('name', 'Apple')->firstOrFail();
+        $this->assertTrue(Asset::where('object_id', $object->id)->exists(), 'Seeded fixture asset is an Apple');
+
+        $this->delete("/admin/options/objects/{$object->id}")->assertSessionHasErrors('item');
+        $this->assertDatabaseHas('objects', ['id' => $object->id]);
+
+        $this->post("/admin/options/objects/{$object->id}/deactivate")->assertSessionHasNoErrors();
+        $this->assertFalse($object->fresh()->is_active);
+    }
+
+    public function test_an_unused_object_can_be_created_and_deleted(): void
+    {
+        $this->post('/admin/options/objects', ['name' => 'Lantern'])->assertSessionHasNoErrors();
+        $object = AssetObject::where('name', 'Lantern')->firstOrFail();
+
+        $this->delete("/admin/options/objects/{$object->id}")->assertSessionHasNoErrors();
+        $this->assertDatabaseMissing('objects', ['id' => $object->id]);
+    }
+
+    public function test_a_device_class_linked_to_a_target_cannot_be_deleted(): void
     {
         $class = DeviceClass::where('name', 'iPhone — Standard')->firstOrFail();
 
@@ -94,7 +116,6 @@ class AdminOptionListsTest extends TestCase
         $this->post('/admin/options/camera', ['name' => 'Bad', 'fov' => 500, 'position_mode' => 'orbit', 'distance_factor' => 0, 'elevation_deg' => 100, 'azimuth_deg' => -1])
             ->assertSessionHasErrors(['fov', 'position_mode', 'distance_factor', 'elevation_deg', 'azimuth_deg']);
 
-        $this->post('/admin/options/instance-steps', ['name' => 'Bad steps', 'steps' => '10, 5, 600'])->assertSessionHasErrors('steps');
         $this->post('/admin/options/resolution', ['name' => '1280×720', 'width' => 1280, 'height' => 720])->assertSessionHasErrors('name');
     }
 
@@ -110,40 +131,33 @@ class AdminOptionListsTest extends TestCase
         $this->assertTrue($values['environment_map']);
     }
 
-    public function test_instance_steps_are_stored_as_numbers(): void
-    {
-        $this->post('/admin/options/instance-steps', ['name' => 'Big', 'steps' => '1, 50, 100, 500'])->assertSessionHasNoErrors();
-
-        $this->assertSame([1, 50, 100, 500], OptionPreset::where('name', 'Big')->firstOrFail()->values_json['steps']);
-    }
-
-    public function test_budget_preset_form_stores_items_and_device_classes(): void
+    public function test_target_form_stores_values_and_device_classes(): void
     {
         $classes = DeviceClass::whereIn('name', ['iPad', 'Android Tablet'])->pluck('id')->all();
 
-        $this->post('/admin/options/budgets', [
-            'name' => 'Tablet — Standard',
-            'device_class_ids' => $classes,
-            'items' => [
-                'max_file_size_mb' => ['enabled' => '1', 'limit' => '10'],
-                'max_p95_frame_ms' => ['enabled' => '1', 'limit' => '16.7'],
-                'max_jank_pct' => ['enabled' => '0', 'limit' => ''],
-            ],
+        $this->post('/admin/options/targets', [
+            'name' => 'Tablet', 'max_load_s' => '3.5', 'target_fps' => '60', 'max_file_size_mb' => '10', 'device_class_ids' => $classes,
         ])->assertSessionHasNoErrors();
 
-        $budget = BudgetPreset::where('name', 'Tablet — Standard')->firstOrFail();
-        $this->assertEquals(['enabled' => true, 'limit' => 10.0], $budget->items_json['max_file_size_mb']);
-        $this->assertEquals(['enabled' => true, 'limit' => 16.7], $budget->items_json['max_p95_frame_ms']);
-        $this->assertSame(['enabled' => false, 'limit' => null], $budget->items_json['max_jank_pct']);
-        $this->assertEqualsCanonicalizing($classes, $budget->deviceClasses->pluck('id')->all());
+        $target = Target::where('name', 'Tablet')->firstOrFail();
+        $this->assertSame(3.5, $target->max_load_s);
+        $this->assertSame(60, $target->target_fps);
+        $this->assertSame(10.0, $target->max_file_size_mb);
+        $this->assertEqualsCanonicalizing($classes, $target->deviceClasses->pluck('id')->all());
     }
 
-    public function test_an_enabled_budget_item_needs_a_limit(): void
+    public function test_target_values_are_validated(): void
     {
-        $this->post('/admin/options/budgets', [
-            'name' => 'Missing limit',
-            'items' => ['max_draw_calls' => ['enabled' => '1', 'limit' => '']],
-        ])->assertSessionHasErrors('items.max_draw_calls.limit');
+        $this->post('/admin/options/targets', ['name' => 'Bad', 'max_load_s' => '0', 'target_fps' => '29.5', 'max_file_size_mb' => ''])
+            ->assertSessionHasErrors(['max_load_s', 'target_fps', 'max_file_size_mb']);
+    }
+
+    public function test_the_default_target_cannot_be_deactivated(): void
+    {
+        $default = Target::where('is_default', true)->firstOrFail();
+
+        $this->post("/admin/options/targets/{$default->id}/deactivate")->assertSessionHasErrors('item');
+        $this->assertTrue($default->fresh()->is_active);
     }
 
     public function test_set_default_moves_the_default_flag(): void
