@@ -1268,6 +1268,115 @@
         color: var(--color-neutral-600);
     }
 
+    /* ---------- Linked panes (BENCHMARK.md §4.3, DESIGN.md §8.3, §9.3) ---------- */
+
+    .pane-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @media (width >= 48rem) {
+        .pane-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .pane {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .pane-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.25rem 0.75rem;
+        font-size: var(--text-body-sm);
+    }
+
+    .pane-view {
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
+
+    .pane-view img,
+    .pane-view .benchmark-canvas-element {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        object-fit: contain;
+    }
+
+    /* The measured pane: strong primary border and a "Measuring" label, set before the window starts. */
+    .pane[data-measuring] .pane-view {
+        border: var(--border-strong) solid var(--primary);
+    }
+
+    .pane .pane-measuring {
+        display: none;
+    }
+
+    .pane[data-measuring] .pane-measuring {
+        display: inline-flex;
+    }
+
+    .pane-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 1rem;
+    }
+
+    .pane-toolbar fieldset {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .benchmark-panes {
+        width: min(100%, calc((100svh - 14rem) * 16 / 9));
+        margin-inline: auto;
+    }
+
+    .benchmark-shell .pane-meta {
+        color: var(--color-neutral-0);
+    }
+
+    .benchmark-shell .pane-view {
+        background: var(--color-neutral-700);
+        border-color: var(--color-neutral-600);
+    }
+
+    /* Load-phase stacked bar (DESIGN.md §10): HTML segments, values in text next to the bar. */
+    .phase-bar {
+        display: flex;
+        height: 1rem;
+        min-width: 0;
+        background: var(--color-neutral-100);
+        border: var(--border-hairline) solid var(--color-neutral-300);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    /* Series colors in DESIGN.md §10 order; the legend and the text values name each phase. */
+    .phase-bar > [data-phase='1'], .phase-key[data-phase='1'] { background: var(--primary); }
+    .phase-bar > [data-phase='2'], .phase-key[data-phase='2'] { background: var(--color-neutral-800); }
+    .phase-bar > [data-phase='3'], .phase-key[data-phase='3'] { background: var(--color-primary-light); }
+    .phase-bar > [data-phase='4'], .phase-key[data-phase='4'] { background: var(--color-neutral-600); }
+
+    .phase-key {
+        display: inline-block;
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: var(--radius-sm);
+        vertical-align: middle;
+    }
+
     /* ---------- Feedback motion ---------- */
 
     .skeleton {

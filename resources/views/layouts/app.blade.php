@@ -1,7 +1,7 @@
 @props([
     'title',
     'description' => null,
-    'sample' => true,
+    'sample' => false, // every screen shows real data since M4.6
 ])
 <!DOCTYPE html>
 <html lang="en">

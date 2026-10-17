@@ -19,7 +19,8 @@ return [
     // reports. One zone for every viewer (decision D38).
     'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Jakarta'),
 
-    // A run that has not submitted results expires this many minutes after start (BENCHMARK.md §5).
+    // A run that has not submitted results expires this many minutes after start, or after its estimated time
+    // plus 15 minutes when that is longer (BENCHMARK.md §5, decision D59; App\Support\RunEstimate).
     'run_expiry_minutes' => 30,
 
     // The only database that the verification scripts, tests, and DevFixtureSeeder may touch (AGENT.md §9).

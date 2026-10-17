@@ -7,6 +7,7 @@ This file is the authority for build order, milestone scope, and acceptance crit
 ## 1. Rules
 
 - One milestone (sub-milestone) at a time.
+- From M4.4 on (decision D60), the agent continues to the next milestone without waiting for approval, logs every step and decision in `LOG.md`, and stops before the live deployment in M5.2. The user tests end to end after the last milestone.
 - Ask for approval before you start each sub-milestone (`AGENT.md` §2).
 - Build only its scope. Test it. Update `LOG.md`. Report. **Stop.**
 - A milestone is complete when its acceptance criteria pass, `LOG.md` is updated, and the user has seen the result.
@@ -220,7 +221,7 @@ This file is the authority for build order, milestone scope, and acceptance crit
 
 **Acceptance**
 
-- Self-test produces all metrics in `BENCHMARK.md` §3.3 (GPU fields `null` where unsupported) on desktop Chrome and on one phone.
+- Self-test produces all metrics in `BENCHMARK.md` §3.3 (GPU fields `null` where unsupported) on desktop Chrome. *(The phone check was removed by the user on 2026-10-09, decision D58.)*
 - Hiding the tab during a window makes the run invalid.
 - No DOM changes during a window (verify with a mutation observer in the self-test).
 - Budget evaluation unit tests cover Pass, Fail, Not measured, disabled items.
@@ -259,7 +260,7 @@ This file is the authority for build order, milestone scope, and acceptance crit
 
 - Rotating one pane rotates all panes; the panes work with mouse, touch, and keyboard.
 - During measurement only one pane renders (verify in the engine) and no DOM mutation happens during a window (mutation observer in a test page).
-- Three Bird fixtures, 3 repetitions, all three motion scenarios: results show the labels per scenario, the Target checks, and the median and spread.
+- Three Bird fixtures, 3 repetitions, all three motion scenarios: results show the labels per scenario, the Target checks, and the median and spread. *(Pending, decision D57: the user tests this manually with their own models. The agent checks the same flow with the available fixtures.)*
 - A best marker is not shown when the spreads overlap.
 - Default order of the panes and the table is the selection order.
 

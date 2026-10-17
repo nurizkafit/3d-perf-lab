@@ -6,6 +6,7 @@
             <th scope="col" data-numeric>#</th>
             <th scope="col">Asset</th>
             <th scope="col">Tool</th>
+            <th scope="col">Object</th>
             <th scope="col">Author</th>
             <th scope="col">Format</th>
             <th scope="col" data-numeric>File size</th>
@@ -20,6 +21,7 @@
             <td data-numeric class="text-neutral-600">{{ $i + 1 }}</td>
             <th scope="row"><a class="link flex items-center gap-3" href="{{ route('assets.show', $asset['id']) }}"><span class="thumb"><x-ui.icon name="cube" /></span>{{ $asset['name'] }}</a></th>
             <td>{{ $asset['tool'] }}</td>
+            <td>{{ $asset['object'] ?? '—' }}</td>
             <td>{{ $asset['author'] }}</td>
             <td><x-ui.badge>{{ $asset['format'] }}</x-ui.badge></td>
             <td data-numeric>{{ $asset['size'] }}</td>

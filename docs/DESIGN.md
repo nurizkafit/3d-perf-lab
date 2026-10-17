@@ -178,7 +178,7 @@ Modal:             border strong neutral-800 · radius xl · shadow hard-lg
 - The neutral scale (50–950) is one OKLCH ramp from `#F8FAFC` to `#1F2128`.
 - Dark non-text elements stay in the `neutral-700`–`neutral-800` range: shadows and strong borders `neutral-800`, dark fills `neutral-700`. `neutral-900` and `neutral-950` are not used for components; `neutral-950` is the primary text color. Icons use `currentColor`.
 - Pass/Fail badges always include an icon and a word ("Pass", "Fail"). Never color only.
-- Never color asset columns green/red to imply better or worse. Budget outcome badges are the only colored result cells.
+- Never color asset columns green/red to imply better or worse. Target check badges (Pass, Fail, Not measured) are the only colored result cells. Smoothness labels and best markers are neutral (§9.4).
 - Light theme only in the MVP. Define colors as CSS variables so a dark theme can be added later.
 
 ---
@@ -236,7 +236,7 @@ Use **Basecoat** (shadcn/ui-style components as plain HTML classes on Tailwind C
 | Toast                     | Bottom-right (bottom-center on phones). Auto-close 4 s; errors stay until closed                                                                                                                                                                   |
 | Empty state               | Icon, one sentence, one primary action                                                                                                                                                                                                             |
 | Dropzone                  | Dashed `strong` border `neutral-400`. On drag-over: solid `primary` border, `primary-tint` fill, `hard-md` shadow                                                                                                                                  |
-| Metric card               | Static card; never shows rank or a "best" marker                                                                                                                                                                                                   |
+| Metric card               | Static card; never shows a rank or an overall score. It can show a best marker badge (§9.4)                                                                                                                                                                                                   |
 
 ---
 
@@ -254,9 +254,9 @@ Standard icon map (use these names consistently):
 | Dashboard       | `squares-four`       | Upload            | `upload-simple`             |
 | Assets          | `cube`               | Search            | `magnifying-glass`          |
 | Performance Lab | `flask`              | Filter            | `funnel-simple`             |
-| Comparison Test | `columns`            | Delete            | `trash`                     |
-| Stress Test     | `stack`              | Restore           | `arrow-counter-clockwise`   |
-| Headroom Test   | `gauge`              | Edit              | `pencil-simple`             |
+| Side-by-Side Test | `columns`          | Delete            | `trash`                     |
+| Crowd Test      | `users-three`        | Restore           | `arrow-counter-clockwise`   |
+| Tool summary    | `scales`             | Edit              | `pencil-simple`             |
 | Results         | `chart-line`         | Download / export | `download-simple`           |
 | Reports         | `article`            | Publish           | `globe-simple`              |
 | Users           | `users`              | Unpublish         | `eye-slash`                 |
@@ -267,8 +267,10 @@ Standard icon map (use these names consistently):
 | Library         | `cube`               | Test history      | `chart-line`                |
 | Authoring tools | `wrench`             | Camera presets    | `camera`                    |
 | Lighting presets| `lightbulb`          | Background presets| `paint-bucket`              |
-| Resolution presets | `frame-corners`   | Instance steps    | `stack-simple`              |
-| Device classes  | `devices`            | Budget presets    | `target`                    |
+| Resolution presets | `frame-corners`   | Objects           | `shapes`                    |
+| Device classes  | `devices`            | Targets           | `target`                    |
+| Best marker     | `trophy`             | Too close to call | `equals`                    |
+| Shake (Physics) | `arrows-out-cardinal`| Estimated time    | `timer`                     |
 
 Check exact icon names against the installed Phosphor version at M0.
 
@@ -329,7 +331,7 @@ Page header (title, short description, primary action on the right) → optional
 ### 8.3 Grids
 
 - Asset grid: `repeat(auto-fill, minmax(min(100%, 14rem), 1fr))`.
-- Comparison viewers in results: `repeat(auto-fit, minmax(min(100%, 20rem), 1fr))`.
+- Side-by-Side panes (look phase, benchmark mode, results): 2 panes side by side; 3–4 panes in a 2 × 2 grid. Below `md`, the panes stack in one column.
 
 ---
 
@@ -358,7 +360,7 @@ APPLY TO ROWS
 
 ### 9.2 Performance Lab configuration
 
-Numbered steps in one page: **1 Assets → 2 Settings → 3 Budget → 4 Device → Run**. Each step is a static card with a step number in a filled `neutral-700` square. The Run button is disabled until all steps are valid, with the reason shown next to it.
+Numbered steps in one page: **1 Assets → 2 Settings → 3 Target → 4 Device → Run**. Each step is a static card with a step number in a filled `neutral-700` square. The Run button is disabled until all steps are valid, with the reason shown next to it.
 T
 ### 9.3 Benchmark mode
 
@@ -366,12 +368,15 @@ T
 - One thin progress strip above the canvas: method, asset, repetition, step, time left, "Measurement n of N", and a thin progress bar (`neutral-0` on `neutral-600`, 5.45:1) for completed measurements. Updated between windows only; the bar jumps and is never animated.
 - A Cancel button outside the canvas area.
 - No other UI.
+- Side-by-Side: the panes keep their grid positions and sizes (§8.3). The measured pane has a `primary` strong border and the label "Measuring", both set before the window starts. The other panes show their last frame as a static image.
 
 ### 9.4 Results and reports
 
-- Budget table first: rows = budget items, columns = assets (selection order), cells = Pass/Fail/Not measured badge + measured value + limit.
+- Target checks table first: rows = Target checks (`BENCHMARK.md` §6.1), columns = assets (selection order), cells = Pass/Fail/Not measured badge + measured value + Target value. Below the table: "Meets all Target checks: Yes / No" per asset.
 - Then metric tables and charts.
-- Every budget item and metric row shows its label with the unit, and a one-line explanation under it (`body-sm`, `neutral-600`). The text lives in `App\Support\MetricDefinitions`; definitions stay in `BENCHMARK.md`.
+- **Smoothness label** (`BENCHMARK.md` §4.4): a `neutral` badge with the word and the FPS-equivalent, for example "Smooth · 59 fps". No icon, no status color. The label word carries the meaning.
+- **Best marker** (`BENCHMARK.md` §4.5): an `outline` badge (neutral) with the `trophy` icon and the marker name, for example "Fastest load". "Too close to call" is an `outline` badge with the `equals` icon, shown on the table row, not on a pane. Markers never re-sort the results.
+- Every Target check and metric row shows its label with the unit, and a one-line explanation under it (`body-sm`, `neutral-600`). The text lives in `App\Support\MetricDefinitions`; definitions stay in `BENCHMARK.md`.
 - Every asset column header names the asset with its tool, format, and author. Test detail and the report editor start with a "Tested assets" table (selection order, metadata, file metrics).
 - "Unstable" note uses the warning badge with a tooltip that explains the spread rule.
 
@@ -380,10 +385,10 @@ T
 ## 10. Charts
 
 - Library: uPlot (canvas, approved at M4.1). Do not use a large charting framework.
-- Allowed: line (metric vs instance count), bar (per-asset values, selection order), stacked bar (load phases), box plot or histogram (frame intervals), probe sequence (Headroom).
+- Allowed: line (metric vs instance count), bar (per-asset values, selection order), stacked bar (load phases), box plot or histogram (frame intervals), probe sequence (Crowd: copies per probe).
 - Not allowed: pie, gauge, 3D charts, gradients, any composite score.
 - Series colors: `primary`, `neutral-800`, `primary-light`, `neutral-600`, then dashed variants. Distinguish series by line style and marker shape as well as color.
-- The budget limit is a dashed `destructive` reference line with a text label.
+- A Target value is a dashed `destructive` reference line with a text label.
 - Charts render outside the benchmark canvas and only after the run.
 
 ---
@@ -402,8 +407,8 @@ T
 
 - Same tokens and fonts as the app, with more white space.
 - Landing: one viewport (`100svh`): platform name (display), one-sentence description, three short points (what it does), buttons to Reports and About. No metrics, no dashboard cards.
-- Report gallery: card grid; each card shows title, method badge, device class, published date, asset count, the question (two lines). No winner markers.
-- Report detail: question as the page lead; budget result table; interactive reproduction; evidence; configuration; environment; limitations; conclusion.
+- Report gallery: card grid; each card shows title, method badge, device class, published date, asset count, the question (two lines). No best markers on cards.
+- Report detail: question as the page lead; Target checks table; interactive reproduction; evidence; configuration; environment; limitations; conclusion.
 - About: sidebar with section anchors + readable content (`readable-width`).
 - Contact: the contact methods that the owner supplies. Never invent contact data.
 

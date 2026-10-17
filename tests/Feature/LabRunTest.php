@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 /**
  * Run lifecycle (BENCHMARK.md §4.1, §5), device confirmation (§7.1), Target step suggestion (§6.2).
- * Creating tests and submitting results return with the Side-by-Side and Crowd tests (M4.3, M4.4).
+ * Side-by-Side test creation, submission, and results are in SideBySideTest.
  */
 class LabRunTest extends TestCase
 {
@@ -69,11 +69,10 @@ class LabRunTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        foreach (['/lab/comparison', '/lab/stress', '/lab/headroom', '/lab/runs/1'] as $url) {
+        foreach (['/lab/comparison', '/lab/stress', '/lab/headroom'] as $url) {
             $this->get($url)->assertNotFound();
         }
-        $this->postJson('/api/tests', [])->assertNotFound();
-        $this->postJson('/api/runs/1/results', [])->assertNotFound();
+        $this->postJson('/api/tests', ['method' => 'comparison'])->assertUnprocessable()->assertJsonValidationErrors('method');
     }
 
     public function test_the_lab_page_lists_the_new_methods_as_coming(): void
@@ -175,11 +174,11 @@ class LabRunTest extends TestCase
         $this->postJson("/api/tests/{$test->id}/runs", ['environment' => []])->assertForbidden();
     }
 
-    public function test_the_results_page_shows_the_test_record_until_the_results_view_exists(): void
+    public function test_the_results_page_without_a_completed_run_says_so_and_is_private(): void
     {
         $test = $this->createTest();
 
-        $this->actingAs($this->user)->get("/results/{$test->id}")->assertOk()->assertSee('Lab test')->assertSee('Test object')->assertSee('M4.3');
+        $this->actingAs($this->user)->get("/results/{$test->id}")->assertOk()->assertSee('Lab test')->assertSee('This test has no completed run yet.');
         $this->actingAs(User::factory()->create())->get("/results/{$test->id}")->assertForbidden();
     }
 }

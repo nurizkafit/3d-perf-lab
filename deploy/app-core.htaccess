@@ -1,0 +1,3 @@
+# Second barrier (DEPLOYMENT.md §7): copy to app-core/.htaccess. Nothing in the Laravel project folder is served,
+# even if the document root is set wrong.
+Require all denied

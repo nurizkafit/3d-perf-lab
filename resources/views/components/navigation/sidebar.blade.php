@@ -13,12 +13,12 @@
             ['label' => 'Upload', 'icon' => 'upload-simple', 'href' => route('assets.upload'), 'active' => $is('assets.upload')],
         ],
         'Performance Lab' => [
-            ['label' => 'Side-by-Side Test', 'icon' => 'columns', 'soon' => 'M4.3'],
-            ['label' => 'Crowd Test', 'icon' => 'users-three', 'soon' => 'M4.4'],
+            ['label' => 'Side-by-Side Test', 'icon' => 'columns', 'href' => route('lab.side-by-side'), 'active' => $is('lab.side-by-side')],
+            ['label' => 'Crowd Test', 'icon' => 'users-three', 'href' => route('lab.crowd'), 'active' => $is('lab.crowd')],
         ],
         'Results' => [
-            ['label' => 'Test history', 'icon' => 'chart-line', 'href' => route('results.index'), 'active' => $is('results.*')],
-            ['label' => 'Tool summary', 'icon' => 'scales', 'soon' => 'M4.5'],
+            ['label' => 'Test history', 'icon' => 'chart-line', 'href' => route('results.index'), 'active' => $is('results.index', 'results.show', 'results.report')],
+            ['label' => 'Tool summary', 'icon' => 'scales', 'href' => route('results.tools'), 'active' => $is('results.tools')],
         ],
     ];
 

@@ -13,7 +13,7 @@
         <p class="section-label">Local only · M4.1, motion scenarios M4.2</p>
         <h1 class="text-h1 font-bold">Engine self-test</h1>
         <p class="max-w-[var(--readable-width)] text-neutral-600">
-            Runs <code>{{ $fixture }}</code> in benchmark mode at 1280 × 720: refresh-rate estimate, cold and warm load, then a warm-up and a 5 s
+            Runs one fixture from <code>fixtures/models/</code> in benchmark mode at 1280 × 720: refresh-rate estimate, cold and warm load, then a warm-up and a 5 s
             measurement window in each selected motion scenario. The smoothness label and stutter use the Target frame rate. Nothing is stored.
             Keep this tab visible; hiding it makes the run invalid.
         </p>
@@ -21,6 +21,14 @@
 
     <section class="card space-y-4" aria-labelledby="engine-settings">
         <x-ui.section-label id="engine-settings" as="h2">Settings</x-ui.section-label>
+        <div class="max-w-sm">
+            <label for="engine-fixture" class="field-label">Fixture</label>
+            <select id="engine-fixture" class="select" data-engine-fixture>
+                @foreach ($fixtures as $path => $url)
+                    <option value="{{ $url }}">{{ $path }}</option>
+                @endforeach
+            </select>
+        </div>
         <fieldset class="space-y-2">
             <legend class="field-label">Motion scenarios</legend>
             <div class="flex flex-wrap gap-4">

@@ -61,5 +61,13 @@ class MetricDefinitions
         'jank_pct' => ['label' => 'Stutter', 'unit' => '%', 'help' => 'Share of frames slower than twice the goal frame time.'],
         'ttff_cold_ms' => ['label' => 'Time to first frame, cold', 'unit' => 'ms', 'help' => 'Download + parse + GPU upload + first frame, with an empty cache.'],
         'draw_calls' => ['label' => 'Draw calls', 'unit' => '', 'help' => 'Draw commands per frame (browser-reported by the renderer).'],
+        'interval_p99_ms' => ['label' => 'p99 frame interval', 'unit' => 'ms', 'help' => 'Time between frames that 99% of frames do not exceed.'],
+        'fps_avg' => ['label' => 'Average frame rate', 'unit' => 'fps', 'help' => '1000 ÷ the mean frame interval. Hides stutter; use the p95 values for smoothness.'],
+        'fps_1pct_low' => ['label' => '1% low frame rate', 'unit' => 'fps', 'help' => 'Frame rate of the slowest 1% of frames.'],
+        'work_p50_ms' => ['label' => 'Render work p50', 'unit' => 'ms', 'help' => 'Typical CPU time spent in one render call.'],
+        'rendered_triangles' => ['label' => 'Rendered triangles', 'unit' => '', 'help' => 'Triangles drawn per frame (browser-reported by the renderer).'],
+        'textures_in_memory' => ['label' => 'Textures in memory', 'unit' => '', 'help' => 'Textures the renderer holds (browser-reported by the renderer).'],
+        'js_heap_used' => ['label' => 'JS heap', 'unit' => 'bytes', 'help' => 'Browser-reported JavaScript heap (Chromium only). Excludes GPU memory.'],
+        'frames' => ['label' => 'Frames in the window', 'unit' => '', 'help' => 'Number of frames rendered during the measurement window.'],
     ];
 }

@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
- * App screens (sample data until their milestones). Signed in as an admin so every screen is reachable.
+ * App screens. Signed in as an admin so every screen is reachable. Since M4.6 no screen shows sample data.
  */
 class AppScreensTest extends TestCase
 {
@@ -25,7 +25,7 @@ class AppScreensTest extends TestCase
 
     private const SCREENS = [
         '/dashboard', '/assets/upload',
-        '/lab', '/results', '/results/1/report',
+        '/lab', '/lab/side-by-side', '/lab/crowd', '/results', '/results/tools',
     ];
 
     public function test_every_screen_renders(): void
@@ -35,10 +35,10 @@ class AppScreensTest extends TestCase
         }
     }
 
-    public function test_sample_data_is_marked(): void
+    public function test_no_screen_shows_sample_data(): void
     {
-        foreach (array_diff(self::SCREENS, ['/lab', '/assets/upload']) as $url) {
-            $this->get($url)->assertSee('Sample data');
+        foreach (self::SCREENS as $url) {
+            $this->get($url)->assertDontSee('Sample data');
         }
     }
 
@@ -53,12 +53,12 @@ class AppScreensTest extends TestCase
         }
     }
 
-    public function test_the_sidebar_shows_the_new_lab_methods_as_coming(): void
+    public function test_the_sidebar_links_the_lab_methods_and_the_tool_summary(): void
     {
         $this->get('/dashboard')
-            ->assertSee('Side-by-Side Test')->assertSee('coming in M4.3')
-            ->assertSee('Crowd Test')->assertSee('coming in M4.4')
-            ->assertSee('Tool summary')->assertSee('coming in M4.5')
+            ->assertSee('Side-by-Side Test')->assertSee('href="'.url('/lab/side-by-side').'"', false)->assertDontSee('coming in M4.3')
+            ->assertSee('Crowd Test')->assertSee('href="'.url('/lab/crowd').'"', false)
+            ->assertSee('Tool summary')->assertSee('href="'.url('/results/tools').'"', false)
             ->assertDontSee('href="'.url('/lab/comparison').'"', false)->assertDontSee('href="'.url('/lab/headroom').'"', false);
     }
 
@@ -67,16 +67,6 @@ class AppScreensTest extends TestCase
         $this->get('/assets/upload')
             ->assertSee('<script type="application/json" id="upload-config">', false)
             ->assertSee('x-data="uploadTable"', false);
-    }
-
-    public function test_result_screens_show_tested_asset_metadata(): void
-    {
-        foreach (['/results/1/report'] as $url) {
-            $this->get($url)
-                ->assertSee('Tested assets')
-                ->assertSee('Dummy Author B')
-                ->assertSee('Prisma3D');
-        }
     }
 
     public function test_sidebar_items_are_not_hidden_in_collapsible_groups(): void

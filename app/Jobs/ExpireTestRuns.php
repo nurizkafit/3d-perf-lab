@@ -7,8 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
- * Runs still `running` config('lab.run_expiry_minutes') after start become invalid with reason
- * "expired" (BENCHMARK.md §5). They never produce budget results.
+ * Runs still `running` after their expiry (30 minutes, or the estimate + 15 minutes; D59) become invalid with reason
+ * "expired" (BENCHMARK.md §5). They never produce results or Target checks.
  */
 class ExpireTestRuns implements ShouldQueue
 {

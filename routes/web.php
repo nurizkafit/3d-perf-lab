@@ -3,18 +3,24 @@
 use App\Http\Controllers\Admin\OptionListController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\AssetSearchController;
+use App\Http\Controllers\Api\CommonObjectsController;
 use App\Http\Controllers\Api\TestRunController;
 use App\Http\Controllers\Api\UploadController as ApiUploadController;
 use App\Http\Controllers\Assets\AssetController;
 use App\Http\Controllers\Assets\UploadController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Lab\CrowdController;
 use App\Http\Controllers\Lab\DeviceController;
+use App\Http\Controllers\Lab\RunController;
+use App\Http\Controllers\Lab\SideBySideController;
 use App\Http\Controllers\Public\ReportController;
+use App\Http\Controllers\Results\ExportController;
+use App\Http\Controllers\Results\ReportController as ResultsReportController;
 use App\Http\Controllers\Results\ResultController;
+use App\Http\Controllers\Results\ToolSummaryController;
 use App\Models\DeviceClass;
 use App\Support\OptionLists;
-use App\Support\SampleReports;
-use App\Support\SampleScreens;
 use App\Support\TargetStep;
 use App\Support\ViewerConfig;
 use Illuminate\Http\Request;
@@ -25,6 +31,7 @@ use Illuminate\Support\Str;
 Route::view('/', 'pages.public.landing')->name('home');
 Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 Route::get('/reports/{slug}', [ReportController::class, 'show'])->name('reports.show');
+Route::get('/reports/{slug}/assets/{token}/{name?}', [ReportController::class, 'asset'])->where('name', '[^/]+')->middleware('throttle:120,1')->name('reports.asset');
 Route::view('/about', 'pages.public.about')->name('about');
 Route::view('/contact', 'pages.public.contact')->name('contact');
 
@@ -37,7 +44,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 
 // Application: signed-in, active accounts only. Screens still show sample data until their milestones.
 Route::middleware(['auth', 'active'])->group(function () {
-    Route::view('/dashboard', 'pages.dashboard.index', ['tests' => SampleScreens::tests(), 'assets' => SampleScreens::assets()])->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/device', [DeviceController::class, 'show'])->name('device.show');
     Route::post('/device', [DeviceController::class, 'store'])->name('device.store');
 
@@ -69,17 +76,29 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/assets/{asset}/thumbnail', [AssetController::class, 'thumbnail'])->withTrashed()->whereNumber('asset')->name('assets.thumbnail');
 
     Route::view('/lab', 'pages.lab.index')->name('lab.index');
-    // Side-by-Side (M4.3) and Crowd (M4.4) pages and the benchmark page /lab/runs/{run} return with those milestones.
+    Route::get('/lab/side-by-side', [SideBySideController::class, 'show'])->name('lab.side-by-side');
+    Route::get('/lab/runs/{run}', [RunController::class, 'show'])->whereNumber('run')->name('lab.runs.show');
+    Route::get('/lab/crowd', [CrowdController::class, 'show'])->name('lab.crowd');
 
     // Lab JSON endpoints: session auth + CSRF (PRD.md §13).
     Route::get('/api/assets', AssetSearchController::class)->name('api.assets.index');
+    Route::get('/api/objects/common', CommonObjectsController::class)->name('api.objects.common');
+    Route::post('/api/tests', [TestRunController::class, 'storeTest'])->name('api.tests.store');
     Route::post('/api/tests/{test}/runs', [TestRunController::class, 'startRun'])->name('api.tests.runs.store');
+    Route::post('/api/runs/{run}/results', [TestRunController::class, 'submit'])->name('api.runs.submit');
     Route::post('/api/runs/{run}/invalidate', [TestRunController::class, 'invalidate'])->name('api.runs.invalidate');
     Route::post('/api/runs/{run}/cancel', [TestRunController::class, 'cancel'])->name('api.runs.cancel');
 
-    Route::view('/results', 'pages.results.index', ['tests' => SampleScreens::tests()])->name('results.index');
+    Route::get('/results', [ResultController::class, 'index'])->name('results.index');
+    Route::get('/results/tools', [ToolSummaryController::class, 'index'])->name('results.tools');
     Route::get('/results/{test}', [ResultController::class, 'show'])->whereNumber('test')->name('results.show');
-    Route::view('/results/{test}/report', 'pages.results.report', ['report' => SampleReports::all()[0], 'assets' => array_slice(SampleScreens::assets(), 0, 3), 'standardLimitations' => SampleReports::STANDARD_LIMITATIONS])->name('results.report');
+    Route::delete('/results/{test}', [ResultController::class, 'destroy'])->whereNumber('test')->name('results.destroy');
+    Route::get('/results/{test}/export.json', [ExportController::class, 'json'])->whereNumber('test')->name('results.export.json');
+    Route::get('/results/{test}/export.csv', [ExportController::class, 'csv'])->whereNumber('test')->name('results.export.csv');
+    Route::get('/results/{test}/report', [ResultsReportController::class, 'edit'])->whereNumber('test')->name('results.report');
+    Route::put('/results/{test}/report', [ResultsReportController::class, 'update'])->whereNumber('test')->name('results.report.update');
+    Route::post('/results/{test}/report/publish', [ResultsReportController::class, 'publish'])->whereNumber('test')->name('results.report.publish');
+    Route::post('/results/{test}/report/unpublish', [ResultsReportController::class, 'unpublish'])->whereNumber('test')->name('results.report.unpublish');
 
     // Administration: admins only (SITEMAP.md §3.5).
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
@@ -118,11 +137,14 @@ if (app()->environment('local')) {
         'config' => ViewerConfig::preview(),
     ]));
 
+    // Engine self-test on any fixture in fixtures/models/ (no upload needed).
     Route::get('/_engine', fn (Request $request) => view('dev.engine', [
-        'fixture' => 'blender/apel.glb',
+        'fixtures' => collect(glob(base_path('fixtures/models/*/*.{glb,gltf}'), GLOB_BRACE))
+            ->map(fn ($path) => Str::after($path, base_path('fixtures/models/')))
+            ->mapWithKeys(fn ($path) => [$path => route('dev.fixture', $path)])
+            ->all(),
         'target' => TargetStep::data($request),
         'config' => [
-            'url' => route('dev.fixture', 'blender/apel.glb'),
             'classes' => DeviceClass::where('is_active', true)->get(['id', 'name', 'category', 'platform']),
         ],
     ]));

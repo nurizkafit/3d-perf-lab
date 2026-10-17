@@ -1,4 +1,4 @@
-// Local-only engine self-test (PROJECT.md M4.1, motion scenarios M4.2): one fixture, cold + warm load, then a
+// Local-only engine self-test (PROJECT.md M4.1, motion scenarios M4.2): one fixture (selectable), cold + warm load, then a
 // warm-up and a measurement window in each selected motion scenario (Static, Spin, Physics). The smoothness label
 // uses the frame rate of the selected Target. Nothing is sent to the server.
 import * as THREE from 'three';
@@ -6,10 +6,8 @@ import { createViewer, tokenColor } from '../three/viewer.js';
 import { COLD_CACHE, coldWarmUrl, timedLoad, WARM_CACHE } from '../three/loaders.js';
 import { createRunGuard, estimateRefreshRate, InvalidRun, measureWindow, primeRenderer, warmUp } from '../three/measure.js';
 import { collectContext, suggestDeviceClass } from '../three/environment.js';
-import { buildHull, centredPivot, createMotion, MOTIONS, PHYSICS, scaleUnit } from '../three/motion.js';
+import { buildHull, centredPivot, createMotion, MOTIONS, PHYSICS, PHYSICS_SEED, scaleUnit } from '../three/motion.js';
 import { goalFrameMs, LABELS, smoothnessLabel } from '../three/smoothness.js';
-
-const PHYSICS_SEED = 20261008;
 
 export async function runSelfTest(root, { url, classes, motions, targetFps, durationMs = 5000, warmupMs = 1000 }) {
     const stage = root.querySelector('[data-engine-stage]');
@@ -128,7 +126,8 @@ export function initEngineSelfTest(root) {
         status.textContent = `Running: refresh-rate estimate, cold and warm load, then ${motions.join(', ')} (warm-up and 5 s each). Keep this tab visible.`;
         output.hidden = true;
 
-        const run = await runSelfTest(root, { ...config, motions, targetFps });
+        const url = root.querySelector('[data-engine-fixture]').value;
+        const run = await runSelfTest(root, { ...config, url, motions, targetFps });
         viewer = run.viewer;
         window.engineSelfTestResult = run.result; // for automated checks
         render(root, run.result);

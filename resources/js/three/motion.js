@@ -10,6 +10,9 @@ import { seededRandom } from './random.js';
 
 export const MOTIONS = ['static', 'spin', 'physics'];
 
+/** Seed of the physics drop. One fixed value, so every asset, run, and look phase drops the same way. */
+export const PHYSICS_SEED = 20261008;
+
 /** Spin speed: 180° per second around each object's own vertical axis. */
 export const SPIN_RAD_PER_S = Math.PI;
 

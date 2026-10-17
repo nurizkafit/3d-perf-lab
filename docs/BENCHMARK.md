@@ -238,7 +238,9 @@ The pass criterion of a probe is the Smooth label (§4.4) at the Target's `targe
 
 During the run the canvas shows the crowd. Between probes the progress strip shows the last probe, for example "64 copies — Smooth".
 
-Settings: scenario, assets or tools + objects, motion scenarios, cap, repetitions, resolution, camera, lighting, background, Target.
+Settings: scenario, assets or tools + objects, motion scenarios, cap, repetitions (1–3, default 1; decision D62), resolution, camera, lighting, background, Target. The estimated run time shows a typical value (every search doubles to the cap, plus a few binary-search probes) and a maximum (every search runs to the time limit); the run expiry uses the maximum (§5).
+
+**Look phase** (decision D64): the explore viewer below, before the run, with 16 copies by default. Not measured.
 
 **Results:**
 
@@ -261,7 +263,7 @@ A view, not a test. It compares authoring tools for one device class with the re
 
 ## 5. What the server does with results
 
-1. Validate the payload schema and the run state (`running`, owned by the user, not expired — a run expires 30 minutes after start; a Crowd run with a long estimate gets the estimate plus 15 minutes).
+1. Validate the payload schema and the run state (`running`, owned by the user, not expired — a run expires 30 minutes after start, or after its estimated run time plus 15 minutes when that is longer; this applies to Side-by-Side and Crowd runs, decision D59).
 2. Store `test_results` rows (per asset or tool set, per motion scenario, per probe, per repetition) with summaries and raw samples.
 3. Calculate the aggregated values (median, min, max) from the submitted summaries. This is arithmetic on submitted numbers, not measurement.
 4. Calculate the smoothness labels (§4.4) and the Target checks (§6) from the aggregates and the Target snapshot, and store them.

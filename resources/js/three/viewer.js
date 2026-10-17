@@ -306,6 +306,10 @@ export function createBenchmarkViewer(container, config = {}) {
             disposeObject(model);
             model = null;
         },
+        /** Auto-frame a box with the camera preset (Crowd: the crowd of the current probe), then fixed. */
+        frame(box) {
+            frameBox(camera, box, cameraPreset);
+        },
         render() {
             renderer.render(scene, camera);
         },

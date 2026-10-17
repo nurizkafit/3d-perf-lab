@@ -8,9 +8,9 @@ The agent updates this file at each milestone boundary and after each decision. 
 
 | Item              | Value                                   |
 | ----------------- | --------------------------------------- |
-| Current milestone | M4.2 — Lab reset and foundations |
-| Status            | M4.2 Lab reset and foundations — completed, waiting for user review. M4.3 Side-by-Side not started. Phone self-test (M4.1) still to be run by the user |
-| Last updated      | 2026-10-08                              |
+| Current milestone | M5.2 — Deployment (prepared; live deployment waits for the user) |
+| Status            | All milestones built (M4.3–M5.1). M5.2 prepared; the live deployment and its smoke test need the user. Next: the user's end-to-end test, then one feedback and bug-fix session (D60). Open: Q3, Q5 |
+| Last updated      | 2026-10-13                              |
 
 ---
 
@@ -44,6 +44,17 @@ These decisions were made by the user during the specification review. They are 
 | D22 | (M0.2) Budget presets link to device classes many-to-many through `budget_preset_device_class`, replacing `budget_presets.device_class_id`                                                               | `PRD.md` §11, §12                      |
 | D23 | (M0.2) Seed one default camera (Auto-frame), lighting (Studio), and background (Neutral, `neutral-100`) preset                                                                                          | `PRD.md` §11                           |
 | D24 | (M0.2) `min_instances_at_budget` is seeded disabled with no limit in all budget presets                                                                                                                  | `BENCHMARK.md` §6.2                    |
+| D65 | (2026-10-13, M4.4 gate, recommended) "Most copies" with one repetition: the highest count wins; equal counts, including two results that reach the cap (≥ cap), are "Too close to call" | `BENCHMARK.md` §4.5 |
+| D64 | (2026-10-13, M4.4 gate, recommended) Crowd look phase = the explore viewer (one asset or tool set, a motion scenario, a copy-count slider, default 16 copies; not measured). The same viewer is used on the results page | `BENCHMARK.md` §4.6 |
+| D63 | (2026-10-13, M4.4 gate, recommended) Synthetic development fixtures: a heavy test sphere (about 200k triangles) and a "Test sphere" object in each tool folder with different detail. Dummy metadata, development only, never user data | `fixtures/models/README.md` |
+| D62 | (2026-10-13, M4.4 gate, recommended) Crowd repetitions default 1, range 1–3. The estimate shows a typical time and a maximum; the run expiry uses the maximum | `BENCHMARK.md` §4.6, §5 |
+| D61 | (2026-10-13) M4.3 approved by the user, with the six agent choices listed in the M4.3 report ("Natural" = neutral best marker badge) | `LOG.md` M4.3 |
+| D60 | (2026-10-13) Workflow change: the agent builds the remaining milestones (M4.4 → M5.1, and M5.2 up to the live deployment) one at a time without waiting for approval between them. New decisions take the recommended option and are logged as "agent, for review". The user tests end to end after all milestones; one feedback and bug-fix session follows. The live deployment (M5.2) still needs the user's confirmation and account access | `AGENT.md` §2, `PROJECT.md` §1 |
+| D59 | (2026-10-09, Q10) Run expiry: 30 minutes after start, or the estimated run time + 15 minutes when that is longer, for Side-by-Side and Crowd runs. A valid long run is not lost | `BENCHMARK.md` §5, `config/lab.php` |
+| D58 | (2026-10-09) The M4.1 phone self-test is removed from the acceptance criteria. Consequence: the engine has no recorded check on a mobile GPU; phone results are first seen in real tests | `PROJECT.md` M4.1 |
+| D57 | (2026-10-09, M4.3 gate) The "Three Bird fixtures" acceptance item of M4.3 is pending. The user tests it manually with their own models | `PROJECT.md` M4.3 |
+| D56 | (2026-10-09, M4.3 gate) During Side-by-Side measurement, the measured pane keeps its grid position and size; the other panes show their last frame as a static image | `DESIGN.md` §9.3 |
+| D55 | (2026-10-09, Q9) Smoothness labels are neutral badges with the word and the FPS-equivalent, no icon and no status color. Best markers are neutral outline badges with the `trophy` icon; "Too close to call" uses `equals`. Pane layout: 2 side by side, 3–4 in a 2 × 2 grid, one column on phones. `DESIGN.md` budget, old method, and "no winner markers" rules replaced | `DESIGN.md` §2.2, §5.1, §6, §8.3, §9.2–9.4, §10, §12 |
 | D54 | (2026-10-07, Q8) Milestone order: M4.2 Lab reset and foundations → M4.3 Side-by-Side → M4.4 Crowd → M4.5 Tool summary → M4.6 Results, reports, publishing. Replaces the order in D43 | `PROJECT.md` §2, §3 |
 | D53 | (2026-10-07, Q7) Delete all existing assets in `render_lab` (40 assets, all Blender, about 1.6 MB of files) instead of adding an Object to them; they are uploaded again with an Object. Executed in M4.2 after a backup and a final confirmation with the exact list | `PROJECT.md` M4.2 |
 | D52 | (2026-10-07, Q7) Object is an admin-managed option list, and it is required for every new upload | `PRD.md` §6.1, §7.1, §11 |
@@ -81,11 +92,170 @@ These decisions were made by the user during the specification review. They are 
 | --- | ------------------------------------------------------------------------------------------------------- | --------- |
 | Q3  | About page text and contact methods (M1.2 uses marked placeholders until supplied)                     | Before M5.2 |
 | Q5  | Hostinger "Confirm" items in `DEPLOYMENT.md`                                                            | M5.2      |
-| Q9  | `DESIGN.md` still says "no winner markers" (§5, §12) and describes budget tables, the three old method icons, and the Headroom probe chart. Visual design of smoothness labels, best markers, linked panes, and Target checks | M4.3 gate |
 
 ---
 
 ## History
+
+## 2026-10-13 — M5.2 Deployment — prepared (stopped before the live deployment)
+
+**Scope:** `DEPLOYMENT.md` procedure: production `.env` template, build, release, document root, permissions, cron, PHP limits, HTTPS; smoke test on the live site; `README.md` (`PROJECT.md` M5.2). Under D60 the agent stops before the live deployment: it publishes the site and needs the user's Hostinger account and confirmation.
+**Done:**
+- `.env.production.example` (production values from `DEPLOYMENT.md` §4: `APP_DEBUG=false`, secure session cookie, database sessions and cache, daily log at warning level, admin seed values).
+- `database/seeders/ProductionSeeder.php` (admin, tools, presets, device classes, Targets; never fixtures or Objects). Ran on `render_lab_verify`: all seeders DONE, idempotent.
+- `bin/make-release.sh`: builds the assets and writes `release/<name>.tar.gz` with `app-core/` (production `vendor/`, `.htaccess` = `Require all denied`) and `public_html/` (public files, `build/`, and `deploy/public_html/index.php`, which points to `../app-core/` and calls `usePublicPath`). Excludes `.env` files, `node_modules/`, storage contents, `storage/verify/`, `fixtures/`, `docs/`, `tests/`, the graph, and development files. Test run: 8.3 MB archive, no secrets or development data; the test archive was deleted (disk space).
+- `README.md` for developers (stack, local setup, verification environment, tests, release).
+- `DEPLOYMENT.md` §4, §5.1, §6 updated (release script, scheduler table: staging cleanup daily, run expiry every 5 minutes with the D59 rule, no queue worker).
+**Not done (needs the user):**
+- The "Confirm" items in `DEPLOYMENT.md` §2–§7 (Q5): PHP version and extensions, MariaDB version, SSH and Composer, cron frequency and PHP path, document root option, PHP limits, HTTPS, backups.
+- The upload to Hostinger, `.env` with real credentials, migrate, `ProductionSeeder`, cron entry, and the smoke test (§8).
+- About text and contact methods (Q3): the pages still show marked placeholders.
+**Issues:**
+- The development machine had only about 350 MB of free disk space at the end of this session. Free space before the next build or browser test.
+**Files:** `.env.production.example`, `database/seeders/ProductionSeeder.php`, `bin/make-release.sh`, `deploy/public_html/index.php`, `deploy/app-core.htaccess`, `.gitignore` (`/release`), `README.md`, `docs/DEPLOYMENT.md`.
+**Next:** the user's end-to-end test of all milestones; then one feedback and bug-fix session; then the live deployment with the user.
+
+## 2026-10-13 — M5.1 Hardening and QA — completed
+
+**Scope:** security review (uploads, authorization, CSRF, XSS, public boundary), error pages, accessibility pass, responsive pass, benchmark-integrity review, index review, performance check (`PROJECT.md` M5.1). Started without a gate (D60).
+**Done and results:**
+- **Security review.**
+  - XSS: no `{!! !!}` in any view; JSON config blocks use `@json` (escapes `<`, `>`, `&`, quotes); the browser writes user text with `textContent`/`x-text` only.
+  - CSRF: no exceptions; the `/api` JSON endpoints are in the web group and send the token (`api.js`).
+  - Authorization: every POST/PUT/PATCH/DELETE action takes a Form Request with a policy check (35 actions checked; logout only needs auth + CSRF). New `HardeningTest`: every GET app route redirects guests to login (JSON endpoints 401), and every admin page returns 403 to a user.
+  - Uploads: content, size, and hash validation from M3.2 unchanged; files stay in private storage with generated names.
+  - Public boundary: `ReportsTest` (M4.6) checks the forbidden fields in the public HTML and JSON.
+  - New: `SecurityHeaders` middleware (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`); public model files rate-limited (120 per minute).
+- **Error pages** `errors/{403,404,419,429,500,503}` in the design system, with no session, database, or user data and `noindex`; each has one sentence and one action.
+- **Accessibility and responsive pass** (headless Chrome, verification environment): 30 pages (22 app pages signed in as admin, 8 public pages including a Side-by-Side and a Crowd public report and the 404 page) at 384, 768, and 1440 wide. Checked: labels on every visible control, an accessible name on every button and link, `alt` on every image, no duplicate ids, exactly one `h1`, no skipped heading levels, `lang` on `<html>`, no horizontal page scroll. **Result: 0 issues; no console errors** (except the intended 404). Keyboard: pane toolbars use native radios with a visible focus outline; canvases are focusable and take arrow keys; dialogs trap focus (M1.1).
+- **Benchmark-integrity review** against `BENCHMARK.md`: standard environment (antialias off, pixel ratio 1, drawing buffer from the preset, `NoToneMapping`, no shadows, no controls or overlays in benchmark mode); cold/warm load URLs and caches (D35); seeded shuffle per repetition with the seed recorded; cool-down by device category; invalidation (hidden tab, focus lost > 1 s, context lost); physics warm-up ≥ 2 s and ≥ 120 steps; one fixed physics step per frame; Crowd probe protocol and search rules; medians, min–max, Unstable > 25 %; labels and `smooth_copies` recomputed on the server; no DOM change during windows (counted in every run: 0 in all browser runs of M4.3–M4.4); the public reproduction never measures. **Finding fixed:** Technical details showed nine metrics without a label or explanation, so the JS heap was not marked as browser-reported; all metrics now have a definition in `MetricDefinitions` (`AGENT.md` §7).
+- **Index review:** the history, Tool summary, and report queries use existing indexes (`test_sessions` created_by + (method, created_at); `test_runs` (status, started_at) + device_class_id; `test_results`/`target_checks` by run; `reports` (status, published_at) + unique slug; unique token). No change needed at the MVP scale.
+- **Performance:** entry JS 131.8 kB (40.1 kB gzip), CSS 296.8 kB (35.0 kB gzip). Three.js (737 kB, 187 kB gzip) and cannon-es (motion chunk, 95 kB) load only on viewer, Lab, benchmark, results, and public report pages; the entry bundle contains neither.
+- `px` check: no `px` design values in CSS or views.
+**Checks:** PHP 190 tests pass (1,133 assertions; new `HardeningTest` 4). JS 21 pass. Pint passes. Build passes.
+**Issues (open):**
+- **Not done by the agent:** the responsive pass on a real phone and tablet (only emulated widths were checked); Lighthouse scores (no Lighthouse CLI; M1.2 recorded ≥ 95 for Landing and Gallery). Both belong to the user's end-to-end test.
+- No Content-Security-Policy: Alpine.js evaluates expressions at runtime and would need `'unsafe-eval'`. Consider Alpine's CSP build later.
+- The CSS bundle includes all Basecoat components (35 kB gzip).
+- Fixture assets in `render_lab_verify` have no metrics rows and no thumbnails (development data only).
+**Files:** `app/Http/Middleware/SecurityHeaders.php`, `bootstrap/app.php`, `routes/web.php`, `resources/views/errors/*.blade.php`, `app/Support/MetricDefinitions.php`, `tests/Feature/HardeningTest.php`.
+**Next:** M5.2 Deployment — prepared by the agent; the live deployment needs the user (D60).
+
+## 2026-10-13 — M4.6 Results, reports, publishing — completed
+
+**Scope:** `PRD.md` §10: history with filters, test detail, JSON/CSV export, report editor, publish/unpublish with slug and tokens, public gallery and detail with real data, public reproduction, `PublicReportPresenter` (`PROJECT.md` M4.6). Started without a gate (D60).
+**Done:**
+- `/results` (`ResultController@index`): own tests (admins: all, with the creator name), filters method, device class, date range (display zone, invalid values ignored), 25 per page; columns name, method + scenario, date, assets, device class, Target, run status, result line (`TestSummary`: "2 of 3 assets meet all Target checks" or "Up to N Smooth copies (Static)"), report state.
+- Test detail: actions Write/Edit report, JSON, CSV, Delete (dialog; blocked while the report is published; a draft report goes with the test; runs and results cascade).
+- Exports (`ExportController`): JSON with test, assets, runs, results with raw samples, Target checks; CSV with one row per stored result (run, device class, asset or tool set, motion or "load", probe, repetition, cold/warm TTFF, metrics, label, copies, flags). Owner or admin.
+- Report editor `/results/{test}/report` (`Results\ReportController`, `ReportService`, `UpdateReportRequest`, `PublishReportRequest`): title, question, standard limitations (`ReportLimitations`, all eight items of `BENCHMARK.md` §9), additional limitations (one per line), conclusion, public asset approval (default not approved), publish checklist, publish, unpublish, public link.
+- Publishing: needs a question, one approved asset, and a completed run. Slug = title + 6 random characters, kept on republish. Tokens change on every publish and unpublish, so old file URLs return 404 at once.
+- Public site: gallery and detail use published reports only (`PublicReportPresenter`); detail has the Target result (Side-by-Side) or "Smooth up to" (Crowd), the interactive reproduction (linked panes or the crowd explorer at the Smooth count, labelled "Interactive reproduction"; unapproved assets show a placeholder), evidence (values table and load phases, or probe charts), asset characteristics, configuration with Target, environment summary, limitations, conclusion. Public model files at `/reports/{slug}/assets/{token}/{name?}`. Assets and groups are keyed by position (a1, g1), never by ID.
+- Dashboard (`DashboardController`): confirmed device class, counts (assets, own tests or all for admins, published reports), recent tests with result line, recent uploads, quick actions (Upload, New Side-by-Side, New Crowd, Tool summary).
+- Removed: `SampleReports`, `SampleScreens`, the old `budget-table` component, the sample states of the public gallery. The app layout no longer shows "Sample data" by default.
+**Decisions (agent, for review):**
+- Approvals are kept while a report is unpublished; unpublish replaces the tokens instead of deleting the approvals, so republishing keeps the approvals with new tokens (PRD §10.4 "Republish … creates new tokens").
+- Deleting a test also deletes its draft report; it is blocked while the report is published.
+- The dashboard was built with real data in this milestone (the last sample screen), because the history and reports it links to became real.
+- A GLTF public URL includes the stored file name, so its dependents resolve under the same token; a GLB URL does not.
+- The public reproduction shows a Crowd group only when all of its assets are approved.
+**Checks:**
+- PHP: 186 tests pass. New `ReportsTest` (7, 95 assertions): private by default, publish blocked without question / approved asset / completed run; draft and unpublished URLs 404; unpublish revokes tokens at once; republish keeps the slug with new tokens; **public HTML (detail and gallery) contains no user email, storage path, stored file name, unapproved or private asset URL, private result URL, raw samples, run seed, `asset_id`, or asset database ID, and no `/api/` call** (the reproduction never measures or writes); owner/admin only for editor, export, publish; approved asset must belong to the test; JSON export has raw samples; CSV has one row per result; history filters and visibility; delete blocked while published, draft deleted with the test; dashboard real data. `PublicSiteTest` and `AppScreensTest` rewritten for real data.
+- Build passes; entry bundle without Three.js and cannon-es.
+- Browser (verification environment, headless Chrome): wrote and published a report for a Side-by-Side test and a Crowd test; as a guest the public pages loaded the panes and the crowd explorer from token URLs (all ready), no horizontal scroll at 1440 and 384, gallery shows 2 cards, no console errors.
+**Issues:**
+- The machine's disk had about 200 MB free during the browser checks; the agent's Chrome profiles (≈ 700 MB, in the session scratchpad) were deleted and are now removed after each run.
+- The public Crowd reproduction cannot show a tool set when one of its assets is not approved; the page explains it.
+**Files:** `app/Http/Controllers/Results/{ResultController,ExportController,ReportController}.php`, `app/Http/Controllers/Public/ReportController.php`, `app/Http/Controllers/Dashboard/DashboardController.php`, `app/Http/Requests/{Results/DeleteTestRequest,Reports/UpdateReportRequest,Reports/PublishReportRequest}.php`, `app/Services/ReportService.php`, `app/Support/{PublicReportPresenter,ReportLimitations,TestSummary}.php`, `app/Models/{Report,TestSession}.php`, views `pages/results/{index,show,report}`, `pages/public/{reports,report-show}`, `pages/dashboard/index`, `components/reports/report-card`, `layouts/app`; `routes/web.php`; tests `tests/Feature/{ReportsTest,PublicSiteTest,AppScreensTest}.php`; docs `SITEMAP.md` §2, `LOG.md`.
+**Next:** M5.1 Hardening and QA (started directly, D60).
+
+## 2026-10-13 — M4.5 Tool summary — completed
+
+**Scope:** `BENCHMARK.md` §4.7, `PRD.md` §8.3: device class and tool selection, common objects, per-tool medians, Target check counts, copies, Tool crowd results, best markers, links to the source tests, "Not tested" cells (`PROJECT.md` M4.5). Started without a gate (D60).
+**Done:**
+- `GET /results/tools` (`Results\ToolSummaryController`, `pages/results/tools`): device class (default: the confirmed one), tools, and left-out objects in the query string; works without JavaScript and can be bookmarked. Missing objects are listed with the tools that lack them.
+- `ToolSummaryService`: per object and tool, the most recent completed run on the device class — Side-by-Side for cold load and checks, Crowd Per asset for `smooth_copies`. Per tool: objects compared, median file size, median triangles, median cold load with "n of N tested", "x of y pass" per Target check with the Targets of the source tests, median Smooth copies per motion, and up to five Crowd Per tool results as measured. Best markers per row (Smallest file, Fastest load, Most copies per motion). Per-object table where every value links to the test it came from; "Not tested" where there is no result. Users see their own tests; admins see all.
+- Lab card and sidebar link enabled; "Test history" is no longer highlighted on the Tool summary page.
+**Decisions (agent, for review):**
+- When a tool has several assets for one object, the summary uses the newest asset that has a result on the device class; without any result, the newest asset ("Not tested").
+- The Tool summary compares medians across objects, which have no repetition spread, so its markers use the static rule (lowest or highest value wins; equal values share). The spread rule stays for test results.
+- Objects are left out with "Leave out …" checkboxes (`exclude[]`), so the form works without JavaScript and every object is included by default.
+**Checks:**
+- PHP: 184 tests pass (990 assertions). New `ToolSummaryTest` (3): medians, "1 of 2 pass" / "3 of 3 pass", copies, and markers equal a manual calculation for two tools and three objects; another user's test and another device class are ignored; links to the source tests; a left-out object and a missing object are not included; the page asks for a device class and two tools. `VerificationEnvironmentTest` updated for the D63 fixture objects.
+- Browser (verification environment): `/results/tools` with Blender, Prisma3D, Spline on Laptop — Integrated GPU — Test sphere compared, four objects listed as missing, Crowd values and Tool crowd results linked; no horizontal page scroll at 1440 and 384; no console errors.
+**Issues:**
+- A copy count at the cap shows as the number (for example "1,024 copies") without "≥" in the Tool summary; the source test shows "Reached the cap".
+**Files:** `app/Services/ToolSummaryService.php`, `app/Http/Controllers/Results/ToolSummaryController.php`, `resources/views/pages/results/tools.blade.php`, `routes/web.php`, sidebar, `pages/lab/index`, `tests/Feature/{ToolSummaryTest,AppScreensTest,VerificationEnvironmentTest}.php`.
+**Next:** M4.6 Results, reports, publishing (started directly, D60).
+
+## 2026-10-13 — M4.4 Crowd Test — completed
+
+**Scope:** `BENCHMARK.md` §4.6: Per asset and Per tool, tool and object selection (`PRD.md` §8.3), the visible search, cap and time limit, results with Most copies and the probe chart, the explore viewer (`PROJECT.md` M4.4). Gate decisions D61–D65 (recommended options, user). Started without a gate under D60.
+**Done:**
+- Synthetic fixtures (D63): `fixtures/models/generate-test-spheres.mjs` writes `blender/test-sphere.glb` (320 triangles), `spline/test-sphere.glb` (3,380), `prisma3d/test-sphere.glb` (33,620), `blender/heavy-sphere.glb` (200,000; 4.6 MB). Registered in `fixtures/models/README.md`; `DevFixtureSeeder` imports them into `render_lab_verify`.
+- `GET /api/objects/common?tools=…` (`CommonObjects`, `CommonObjectsController`): objects present in every tool with candidate assets per tool (newest first), and the missing objects with the tools that lack them. Shared with the Tool summary (M4.5).
+- `POST /api/tests` for `method=crowd`: Per asset 1–8 assets; Per tool 2+ tools and 1–30 objects with one asset per tool; a forced object that is missing in a tool, or an asset of another object or tool, is rejected. Repetitions 1–3, cap 1–4,096. Fixed probe protocol stored in the snapshot (1 s / Physics 2 s warm-up, 4 s window, 180 s limit, `instance_mode: clone`). Per tool stores one member per tool × object with `group_tool_id`; `TestSession::crowdShape()`, `CrowdGroups`.
+- Estimate and expiry (D62): `RunEstimate::crowdSeconds()` (typical and maximum; same rule in `features/run-estimate.js`). The run expires after the maximum + 15 minutes.
+- `/lab/crowd` (`Lab\CrowdController`, `features/crowd.js`): scenario switch, selector (Per asset), tool checkboxes with the common-object table, include ticks, asset choice when a tool has more than one, the missing list; look phase = explore viewer (D64); settings, estimate "typical, at most"; Target; Device; Run. `LabPage` now holds the data shared with the Side-by-Side page.
+- Engine: `three/crowd.js` (templates, hulls once per template, round-robin clones, grid or physics crowd box, layout bounds for framing); `three/methods/crowd.js` (`searchCopies`: doubling, binary search to max(1, 5%), cap, time limit; the runner shows the crowd on one canvas, auto-frames each probe, updates the strip only between probes, counts DOM changes during windows); `three/crowd-viewer.js` (explore viewer, listeners removed on dispose). Benchmark viewer gained `frame(box)`.
+- Server results: probes stored with the server's smoothness label; one search row per group × motion × repetition with `smooth_copies` derived by the server from the Smooth probes, `smooth_instances`, `cap_copies`, `at_cap`, the flags, and the probe count. No Target checks (D46). Payload checks: one search per group × motion × repetition, 1–64 probes, probes within the cap, no foreign groups.
+- Results (`CrowdResults`, `partials/crowd`): "Smooth up to N copies" bars per motion in selection order with ≥ cap, Reached the cap, Time limit, Most copies (`BestMarkers::highestSpread`, D65) and Too close to call; explore viewer starting at the Smooth count; probe charts (`features/probe-chart.js`, uPlot: circle/square/triangle and S/M/C text, plus a text list for screen readers); tested assets by group; Technical details per probe; run environment. The results page is split into `partials/side-by-side` and `partials/crowd`.
+- Lab card and sidebar link enabled.
+**Decisions:**
+- D61–D65 — user (recommended options).
+- The server derives `smooth_copies` from the submitted probe summaries with its own label rule instead of trusting a submitted count — agent-routine (`BENCHMARK.md` §1.2: the server evaluates).
+- The probe chart shows repetition 1; all probes of every repetition are in Technical details — agent, for review.
+- The Most copies bars use the series colors in group order (`DESIGN.md` §10); the value is always printed — agent, for review.
+- One look shake lasts 3 s (as in Side-by-Side) — agent-routine.
+**Checks:**
+- PHP: 181 tests pass (959 assertions). New `CrowdTest` (9: page; common objects and missing list with newest asset first; forced missing object and wrong asset rejected; Per asset limits, repetitions, cap; Per tool groups in tool and object order; server-derived `smooth_copies` with binary search, labels, no Target checks, results with Most copies; two results at the cap = Too close to call; incomplete, over-the-cap, and foreign results rejected; expiry = maximum + 15 min) and a Most copies unit test.
+- JS: 21 pass (new: search doubling and 5% gap, first probe not Smooth = 0, cap flag, time-limit flag, gap of one; crowd estimate).
+- Build passes; the entry bundle contains neither Three.js nor cannon-es.
+- Browser (verification environment, headless Chrome, Apple M2, 60 Hz, Target Desktop 60 fps):
+  - Per asset, Static, cap 1,024: **Test sphere (320 triangles) Smooth up to ≥ 1,024 copies (cap); Heavy test sphere (200k triangles) Smooth up to 224 copies** — the light fixture reaches more copies (sanity check passes). 126 s (estimate "about 3 min, at most 7 min"). The crowd was visible on the canvas during the search; 0 DOM changes during windows; no console errors.
+  - Per tool (Blender, Prisma3D, Spline; object Test sphere; Apple, Chicken, Book, Heavy test sphere listed as missing), Static + Physics, cap 64: Static all ≥ 64 (cap, Too close to call); Physics Blender 60, Prisma3D ≥ 64 (Most copies), Spline 44; colliders 84 ms; 0 DOM changes during windows.
+  - Results at 1440 and 384 wide: no horizontal page scroll after the probe-chart resize fix.
+**Issues:**
+- The time-limit stop is covered by the JS unit test and the server tests, not by a 3-minute browser run.
+- Physics crowds are limited by physics time (`physics_p95_ms`) more than by drawing; this is what the scenario measures.
+- Fixture assets in `render_lab_verify` still have no metrics rows (triangles show "—").
+**Files:** `app/Support/{CommonObjects,CrowdGroups,CrowdResults,LabPage,RunEstimate,BestMarkers}.php`; `app/Http/Controllers/Api/{CommonObjectsController,TestRunController}.php`; `app/Http/Controllers/Lab/{CrowdController,SideBySideController,RunController}.php`; `app/Http/Requests/Lab/{CreateTestRequest,SubmitResultsRequest}.php`; `app/Services/{TestSessionService,RunResultService}.php`; `app/Models/{TestSession,TestRun}.php`; `resources/js/three/{crowd,crowd-viewer,viewer}.js`; `resources/js/three/methods/crowd.js`; `resources/js/features/{crowd,probe-chart,run-estimate,benchmark-run}.js`; views `pages/lab/{crowd,run,index}`, `pages/results/{show,partials/side-by-side,partials/crowd}`, `components/performance/crowd-explorer`; tests `tests/Feature/CrowdTest.php`, `tests/Unit/BestMarkersTest.php`, `tests/js/{crowd-search,run-estimate}.test.mjs`; `fixtures/models/{generate-test-spheres.mjs,README.md,*/test-sphere.glb,blender/heavy-sphere.glb}`; docs `BENCHMARK.md` §4.6, `PROJECT.md` §1, `LOG.md`.
+**Next:** M4.5 Tool summary (started directly, D60).
+
+## 2026-10-09 — M4.3 Side-by-Side Test — completed (waiting for user review)
+
+**Scope:** `BENCHMARK.md` §4.3–§4.5: selector (2–4 assets), look phase with linked panes, configuration (motion scenarios, settings, Target, estimated run time), measure phase, results on the panes, value table, load-phase bars, Technical details (`PROJECT.md` M4.3). Plus the `/_engine` fixture picker, and the M4.3 gate decisions D55–D59.
+**Done:**
+- `/lab/side-by-side` (`Lab\SideBySideController`, `features/side-by-side.js`): steps 1 Assets → 2 Settings → 3 Target → 4 Device → Run; selection order with move and remove; motion checkboxes (at least one stays); estimate shown live (`features/run-estimate.js`, same rule as `App\Support\RunEstimate`); draft kept across `/device`. Lab card and sidebar link enabled.
+- Look phase (`three/panes.js`): one renderer per pane, one shared camera and one shared orbit target, so orbit, pan, and zoom in any pane move all panes; mouse, touch, and keyboard (arrow keys pan, Shift + arrows orbit); motion switch Static / Spin / Physics for all panes; Shake (Physics only); Reset view; Fullscreen. Assets keep their real size. Used again on the results page with the presets the test stored.
+- API: `POST /api/tests` (`CreateTestRequest`, `TestSessionService`: preset and Target snapshots, fixed motion order), `POST /api/tests/{test}/runs` returns the run URL, `POST /api/runs/{run}/results` (`SubmitResultsRequest`: schema, known keys only, and the payload must match the configuration exactly: every asset × repetition × load + each motion, no foreign or duplicate rows).
+- `RunResultService::submit`: stores load rows and motion rows, then per asset the medians → `TargetEvaluator` → `target_checks` (Loads in time, Runs smooth per motion with label, File size).
+- Benchmark page `/lab/runs/{run}` (`Lab\RunController`, `features/benchmark-run.js`, `three/methods/side-by-side.js`): panes keep their grid positions; the measured pane gets the `primary` border and "Measuring" before its windows; a fresh benchmark renderer per measured asset; cold and warm load; each selected motion with warm-up (Physics ≥ 2 s and settled) and window; the last frame stays as an image; cool-down; seeded shuffle per repetition; a mutation observer counts DOM changes during windows; the number of rendering panes is recorded.
+- Results `/results/{test}` (`SideBySideResults`, `BestMarkers`): panes with best markers, smoothness labels, cold load, file size, Target checks, "Meets all Target checks"; value table in selection order with markers and "Too close to call"; Unstable note; load-phase stacked bars (HTML, `DESIGN.md` §10 colors, values in text); Tested assets (Object column added); Technical details per motion and the run environment. Without a completed run the page shows the last run status and reason.
+- Run expiry (D59): `TestRun::expiresAt()` = start + max(30 min, estimate + 15 min); `expireStale()` checks each candidate.
+- `/_engine` (local only): fixture picker for every file in `fixtures/models/`.
+**Decisions:**
+- D55–D59 — user (see the decision table). D55 "Best marker: Natural" was read as "neutral" — agent, for review.
+- One renderer per pane (2–4 WebGL contexts) with one shared camera, instead of one renderer with scissor viewports — agent-routine.
+- Before an asset is measured, its benchmark pane shows the stored thumbnail (or "Waiting to be measured"); after, its last measured frame — agent, for review.
+- Look-phase Physics uses the run's physics seed; one look shake lasts 3 s of simulation time — agent, for review.
+- The estimate uses a 4 s allowance per measured asset for loads and set-up — agent, for review.
+- Load-phase bars are HTML segments, not uPlot (simpler, text values next to them) — agent-routine.
+- The results page shows the most recent completed run of the test — agent, for review.
+- New icons from the existing Phosphor set: `arrows-out-cardinal` (Shake), `timer` (estimate); added to `DESIGN.md` §6 — agent, for review.
+**Checks:**
+- PHP: 171 tests pass (882 assertions). New `SideBySideTest` (11: page, guests, 2–4 assets and motion rules, snapshots and selection order, run page creator-only with phone cool-down, submit with median checks and labels, incomplete/foreign/duplicate/wrong-motion payloads, other user, double submit, long vs short expiry, results with markers and "Too close to call", invalid run) and `BestMarkersTest` (5). Pint passed.
+- JS: `npm run test:js` 15 pass (new: estimate equals the server values).
+- Build: `npm run build` passes; the entry bundle contains neither Three.js (`WebGLRenderer`) nor cannon-es (`ConvexPolyhedron`).
+- Browser (verification environment, headless Chrome, Apple M2 Metal, 60 Hz, fixtures Apple / Book / Chicken, Laptop — Integrated GPU, Target Desktop): look phase — 3 panes ready, a drag in pane 1 rotated all panes, Shift + arrows in pane 2 orbited all panes, Physics drop and Shake shown. Quick run (1 repetition, 1 s + 5 s) finished in 66 s. Full-protocol run (3 repetitions, 2 s + 10 s, Static / Spin / Physics) finished in 356 s (estimate "about 7 min"): all Smooth at 60 fps, all Target checks Pass; "Too close to call" for cold load and render work (spreads overlap), Smallest file on Book; **0 DOM changes during windows; 1 rendering pane per window**; memory back to baseline after dispose; seeds and orders recorded; no console errors. Results page at 1440, 768, 384 wide: no horizontal page scroll (tables scroll inside their containers).
+**Issues:**
+- Acceptance item "Three Bird fixtures" is pending (D57): the user tests it manually with their own Bird models.
+- The fixture assets in `render_lab_verify` have no thumbnails and no metrics rows, so vertices and triangles show 0 there. Real uploads have both.
+- Chrome rounds `performance.now()` to about 0.1 ms, so very small models give equal render work values; "Lightest to draw" then shows "Too close to call".
+- The physics box is 3 × the asset size, so a small asset looks small in its box in the look phase. This follows `BENCHMARK.md` §4.2.
+- The public sample report pages still use the old budget table (rebuilt in M4.6).
+**Files:** `app/Http/Controllers/Lab/{SideBySideController,RunController}.php`; `app/Http/Controllers/Api/TestRunController.php`; `app/Http/Controllers/Results/ResultController.php`; `app/Http/Requests/Lab/{CreateTestRequest,SubmitResultsRequest}.php`; `app/Services/{TestSessionService,RunResultService}.php`; `app/Support/{RunEstimate,BestMarkers,SideBySideResults,ViewerConfig}.php`; `app/Models/TestRun.php`; `app/Jobs/ExpireTestRuns.php`; `config/lab.php`; `routes/web.php`; `resources/js/three/{panes,motion}.js`; `resources/js/three/methods/side-by-side.js`; `resources/js/features/{side-by-side,benchmark-run,run-estimate,engine-self-test}.js`; `resources/js/app.js`; `resources/css/components.css`; views `pages/lab/{side-by-side,run,index}`, `pages/results/show`, `components/performance/pane-toolbar`, `components/assets/tested-assets`, sidebar, `dev/engine`; tests `tests/Feature/{SideBySideTest,LabRunTest,AppScreensTest}.php`, `tests/Unit/BestMarkersTest.php`, `tests/js/run-estimate.test.mjs`; docs `DESIGN.md`, `BENCHMARK.md` §5, `PROJECT.md`, `LOG.md`.
+**Next:** M4.4 Crowd Test (not started).
 
 ## 2026-10-08 — M4.2 Lab reset and foundations — completed (waiting for user review)
 

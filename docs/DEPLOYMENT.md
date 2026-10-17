@@ -66,7 +66,7 @@ Never put `app-core/` inside `public_html/`.
 
 ## 4. Environment
 
-Production `.env` (template `.env.production.example` is created in M5.2):
+Production `.env` (template: `.env.production.example` in the project root):
 
 ```dotenv
 APP_ENV=production
@@ -104,16 +104,14 @@ ADMIN_PASSWORD=                # used once by the seeder; remove after first log
 
 On the developer machine:
 
-1. `composer install --no-dev --optimize-autoloader` (or run it on the server, step 7).
-2. `npm ci && npm run build` → creates `public/build/`.
-3. Make the release archive: the project without `node_modules/`, `.env`, `storage/verify/`, `fixtures/`, `docs/`, and `tests/`. Include `public/build/`.
+1–3. `bin/make-release.sh` builds the assets, copies the project without `.env` files, `node_modules/`, storage contents, `storage/verify/`, `fixtures/`, `docs/`, `tests/`, and development files, installs the production `vendor/` (`composer install --no-dev --optimize-autoloader`), and writes `release/<name>.tar.gz` with two folders: `app-core/` (with `.htaccess` = `Require all denied`, from `deploy/app-core.htaccess`) and `public_html/` (the contents of `public/` with `build/`, and the front controller from `deploy/public_html/index.php`, which points to `../app-core/` and calls `usePublicPath`).
 
 On the server (SSH):
 
-4. Upload and extract the archive into `~/domains/<domain>/app-core/`.
-5. Move the contents of `app-core/public/` into `public_html/` and edit `index.php` (§3).
+4. Upload the archive and extract it in `~/domains/<domain>/`: put `app-core/` next to `public_html/`.
+5. Copy the contents of the archive's `public_html/` into the domain's `public_html/` (the `index.php` is already adapted, §3).
 6. Create `app-core/.env` from the template.
-7. `composer install --no-dev --optimize-autoloader` (if not done in step 1).
+7. (Only if `vendor/` was not uploaded) `composer install --no-dev --optimize-autoloader`.
 8. `php artisan migrate --force`
 9. `php artisan db:seed --class=ProductionSeeder --force` (admin, tools, presets, device classes, Targets — no fixtures, no objects).
 10. `php artisan config:cache && php artisan route:cache && php artisan view:cache`
@@ -152,10 +150,10 @@ Scheduled tasks (defined in the app):
 
 | Task | Frequency |
 |---|---|
-| Process queued jobs (`queue:work --stop-when-empty`) | Every minute |
-| Delete staged files of abandoned upload sessions | Daily |
-| Mark runs older than 30 minutes as expired | Every 15 minutes |
-| Prune expired sessions and cache | Daily |
+| Delete staged files of abandoned upload sessions (`CleanupStagedUploads`, sync) | Daily |
+| Mark running runs past their expiry as invalid: 30 minutes, or the estimated run time + 15 minutes when longer (`ExpireTestRuns`, sync; D59) | Every 5 minutes |
+
+No queue worker runs: the scheduler runs the jobs on the sync connection. Laravel removes expired database sessions by its own lottery.
 
 ---
 

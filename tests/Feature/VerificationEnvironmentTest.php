@@ -50,7 +50,7 @@ class VerificationEnvironmentTest extends TestCase
             $this->assertSame(1, OptionPreset::where('type', $type)->where('is_default', true)->count(), "Default {$type}");
         }
         $this->assertFalse(OptionPreset::where('type', 'instance_steps')->exists(), 'The instance-step list was removed in M4.2');
-        $this->assertSame(['Apple', 'Chicken', 'Book'], AssetObject::orderBy('sort_order')->pluck('name')->all(), 'Objects from the fixture register');
+        $this->assertSame(['Apple', 'Chicken', 'Book', 'Test sphere', 'Heavy test sphere'], AssetObject::orderBy('sort_order')->pluck('name')->all(), 'Objects from the fixture register (D63 added the spheres)');
         $this->assertFalse(Asset::whereNull('object_id')->exists(), 'Every fixture asset has an object');
     }
 

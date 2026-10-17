@@ -30,6 +30,14 @@ Complete one row for each file. The seeder reads this table for metadata. Only u
 | `blender/apel.glb` | Apple | Blender | Dummy Author A | 1.5 | Dummy metadata (dev fixture) |
 | `prisma3d/ayam.glb` | Chicken | Prisma3D | Dummy Author B | 2.0 | Dummy metadata (dev fixture) |
 | `spline/buku.glb` | Book | Spline | Dummy Author C | 0.5 | Dummy metadata (dev fixture) |
+| `blender/test-sphere.glb` | Test sphere | Blender | Dummy Author A | 0.2 | Synthetic, generated (D63): 320 triangles |
+| `spline/test-sphere.glb` | Test sphere | Spline | Dummy Author C | 0.2 | Synthetic, generated (D63): 3,380 triangles |
+| `prisma3d/test-sphere.glb` | Test sphere | Prisma3D | Dummy Author B | 0.2 | Synthetic, generated (D63): 33,620 triangles |
+| `blender/heavy-sphere.glb` | Heavy test sphere | Blender | Dummy Author A | 0.2 | Synthetic, generated (D63): 200,000 triangles |
+
+## Synthetic fixtures
+
+`generate-test-spheres.mjs` writes the four sphere files above (run `node fixtures/models/generate-test-spheres.mjs` from the project root). The same "Test sphere" object exists in every tool folder, so the Crowd Test Per tool and the Tool summary can be checked; the heavy sphere is for the Crowd sanity check (a light model reaches more copies than a heavy one).
 
 ## Recommended minimum set
 

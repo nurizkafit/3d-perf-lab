@@ -3,7 +3,6 @@
         <header class="space-y-2">
             <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-h1 font-bold">Reports</h1>
-                <x-ui.badge variant="sample">Sample data</x-ui.badge>
             </div>
             <p class="max-w-[var(--readable-width)] text-neutral-600">Each report answers one question with measured evidence from one device class.</p>
         </header>
@@ -21,23 +20,8 @@
             </div>
         </form>
 
-        @if ($previewState === 'loading')
-            <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr))]" aria-busy="true" aria-label="Loading reports">
-                @foreach (range(1, 3) as $i)
-                    <div class="card space-y-3">
-                        <div class="skeleton h-5 w-1/3"></div>
-                        <div class="skeleton h-6 w-3/4"></div>
-                        <div class="skeleton h-4 w-full"></div>
-                        <div class="skeleton h-4 w-2/3"></div>
-                    </div>
-                @endforeach
-            </div>
-        @elseif ($previewState === 'error')
-            <x-ui.empty-state icon="warning-circle" message="The reports could not be loaded. Try again in a moment." role="alert">
-                <x-ui.button :href="route('reports.index')" icon="arrows-clockwise">Try again</x-ui.button>
-            </x-ui.empty-state>
-        @elseif ($reports->isEmpty())
-            <x-ui.empty-state icon="magnifying-glass" message="No published report matches these filters.">
+        @if ($reports->isEmpty())
+            <x-ui.empty-state icon="magnifying-glass" :message="array_filter($filters) ? 'No published report matches these filters.' : 'No reports are published yet.'">
                 <x-ui.button :href="route('reports.index')">Show all reports</x-ui.button>
             </x-ui.empty-state>
         @else

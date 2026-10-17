@@ -6,6 +6,8 @@ import assetBulk from './features/asset-bulk';
 import deviceCheck from './features/device';
 import assetSelector from './features/asset-selector';
 import targetStep from './features/target-step';
+import sideBySide from './features/side-by-side';
+import crowdTest from './features/crowd';
 
 window.Alpine = Alpine;
 Alpine.data('appShell', appShell);
@@ -14,6 +16,8 @@ Alpine.data('assetBulk', assetBulk);
 Alpine.data('deviceCheck', deviceCheck);
 Alpine.data('assetSelector', assetSelector);
 Alpine.data('targetStep', targetStep);
+Alpine.data('sideBySide', sideBySide);
+Alpine.data('crowdTest', crowdTest);
 Alpine.start();
 
 // Three.js stays out of the entry bundle: the viewer loads only on pages that show a model.
@@ -25,6 +29,28 @@ if (viewerElements.length) {
 const engineSelfTest = document.querySelector('[data-engine-self-test]');
 if (engineSelfTest) {
     import('./features/engine-self-test.js').then(({ initEngineSelfTest }) => initEngineSelfTest(engineSelfTest));
+}
+
+// Results page: linked panes with the stored presets (look phase, not measured).
+const linkedPanes = document.querySelectorAll('[data-linked-panes]');
+if (linkedPanes.length) {
+    import('./three/panes.js').then(({ mountLinkedPanesElement }) => linkedPanes.forEach(mountLinkedPanesElement));
+}
+
+// Results page: Crowd explore viewer (not measured).
+const crowdExplorers = document.querySelectorAll('[data-crowd-explorer]');
+if (crowdExplorers.length) {
+    import('./three/crowd-viewer.js').then(({ mountCrowdExplorerElement }) => crowdExplorers.forEach(mountCrowdExplorerElement));
+}
+
+const probeCharts = document.querySelectorAll('[data-probe-chart]');
+if (probeCharts.length) {
+    import('./features/probe-chart.js').then(({ drawProbeChart }) => probeCharts.forEach(drawProbeChart));
+}
+
+const benchmarkRun = document.querySelector('[data-benchmark-run]');
+if (benchmarkRun) {
+    import('./features/benchmark-run.js').then(({ initBenchmarkRun }) => initBenchmarkRun(benchmarkRun));
 }
 
 const viewerLab = document.querySelector('[data-viewer-lab]');
