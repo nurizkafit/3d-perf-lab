@@ -44,15 +44,27 @@ class TestRunController extends Controller
 
     public function invalidate(RunActionRequest $request, TestRun $run): JsonResponse
     {
-        $this->runs->invalidate($run, $request->validated('reason'));
+        if (! $this->runs->invalidate($run, $request->validated('reason'))) {
+            return $this->notRunning($run);
+        }
 
         return response()->json(['status' => 'invalid']);
     }
 
     public function cancel(RunActionRequest $request, TestRun $run): JsonResponse
     {
-        $this->runs->cancel($run);
+        if (! $this->runs->cancel($run)) {
+            return $this->notRunning($run);
+        }
 
         return response()->json(['status' => 'cancelled']);
+    }
+
+    /** The run ended between the request check and the update (for example, a submit completed it first). */
+    private function notRunning(TestRun $run): JsonResponse
+    {
+        $status = $run->fresh()->status;
+
+        return response()->json(['message' => "This run is {$status}.", 'status' => $status], 409);
     }
 }

@@ -16,12 +16,12 @@
             <li class="card space-y-2">
                 <x-ui.icon name="flask" size="md" />
                 <h2 class="text-h3 font-semibold">Run repeatable tests</h2>
-                <p class="text-body-sm text-neutral-600">Comparison, Stress, and Headroom tests run in the browser with a fixed protocol.</p>
+                <p class="text-body-sm text-neutral-600">Side-by-Side and Crowd tests run in the browser with a fixed protocol.</p>
             </li>
             <li class="card space-y-2">
                 <x-ui.icon name="check-circle" size="md" />
-                <h2 class="text-h3 font-semibold">Check the budget</h2>
-                <p class="text-body-sm text-neutral-600">Every result shows Pass or Fail for each budget item. No scores, no rankings.</p>
+                <h2 class="text-h3 font-semibold">Check the Target</h2>
+                <p class="text-body-sm text-neutral-600">Every result shows Pass or Fail for each Target check. Best values are marked per metric. There is no overall score.</p>
             </li>
         </ul>
 

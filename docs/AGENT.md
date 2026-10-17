@@ -109,14 +109,14 @@ React, Vue, Svelte, Next.js, Livewire, Inertia, htmx, jQuery, any CSS framework 
 ```text
 app/
 ├── Http/
-│   ├── Controllers/        (Public/, Assets/, Lab/, Results/, Admin/, Api/)
-│   ├── Middleware/         (EnsureRole, EnsureActiveUser)
+│   ├── Controllers/        (Public/, Auth/, Dashboard/, Assets/, Lab/, Results/, Admin/, Api/)
+│   ├── Middleware/         (EnsureRole, EnsureActiveUser, SecurityHeaders)
 │   └── Requests/           (Form Requests for every mutation)
 ├── Models/
 ├── Policies/               (AssetPolicy, TestSessionPolicy, ReportPolicy, UserPolicy, UploadSessionPolicy)
 ├── Services/               (UploadService, AssetRegistrationService, RunResultService,
-│                            TargetEvaluator, PublicReportPresenter)
-└── Support/                (small value objects, for example TargetChecks)
+│                            TargetEvaluator, TestSessionService, ReportService, ToolSummaryService)
+└── Support/                (small value objects and presenters, for example PublicReportPresenter, RunEstimate)
 ```
 
 Make a Service for a multi-step workflow (several models, storage, or rules). Do not make a Service that only wraps one query.
@@ -139,8 +139,10 @@ resources/
     │   ├── environment.js  (context collection, device class suggestion)
     │   ├── measure.js      (frame loop, samples, percentiles, GPU timer)
     │   ├── motion.js       (Static, Spin, Physics per-frame updates; cannon-es; convex hull colliders)
+    │   ├── panes.js        (linked panes of the Side-by-Side look phase)
+    │   ├── crowd.js, crowd-viewer.js (Crowd layout and the explore viewer)
     │   └── methods/        (side-by-side.js, crowd.js)
-    └── features/           (upload.js, asset-selector.js, lab-config.js, results.js, tool-summary.js, public-report.js)
+    └── features/           (upload.js, asset-selector.js, side-by-side.js, crowd.js, benchmark-run.js, device.js, and others)
 ```
 
 Rules:

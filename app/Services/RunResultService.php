@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Aggregate;
 use App\Support\Smoothness;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Run lifecycle (BENCHMARK.md §4.1, §5): start → running → completed | invalid | cancelled.
@@ -45,6 +46,7 @@ class RunResultService
         $assets = $test->assets()->get()->keyBy('id');
 
         DB::transaction(function () use ($run, $payload, $test, $assets) {
+            $this->lockRunning($run);
             foreach ($payload['results'] as $result) {
                 $isLoad = ($result['motion'] ?? null) === null;
                 $run->results()->create([
@@ -102,6 +104,7 @@ class RunResultService
         $fps = $test->target_json['target_fps'];
 
         DB::transaction(function () use ($run, $payload, $perTool, $objects, $capCopies, $fps) {
+            $this->lockRunning($run);
             $rows = collect($payload['results']);
             $groupOf = fn (array $row) => $perTool ? $row['group_tool_id'] : $row['asset_id'];
             foreach ($rows->whereNull('search') as $probe) {
@@ -148,15 +151,43 @@ class RunResultService
         });
     }
 
-    /** Invalid runs never produce results or Target checks (BENCHMARK.md §4.1 step 5). */
-    public function invalidate(TestRun $run, string $reason): void
+    /**
+     * Lock the run row and check again that it is still running, so that two submits at the same time cannot both
+     * store results. SubmitResultsRequest checks the status before the transaction; this check closes the race.
+     */
+    private function lockRunning(TestRun $run): void
     {
-        $run->update(['status' => 'invalid', 'invalid_reason' => mb_substr($reason, 0, 250), 'completed_at' => now()]);
+        $status = TestRun::whereKey($run->id)->lockForUpdate()->value('status');
+        if ($status !== 'running') {
+            throw ValidationException::withMessages(['run' => "This run is {$status}; results can no longer be submitted."]);
+        }
     }
 
-    public function cancel(TestRun $run): void
+    /**
+     * Invalid runs never produce results or Target checks (BENCHMARK.md §4.1 step 5). Returns false when the run is
+     * no longer running (for example, a submit completed it first); the run then stays as it is.
+     */
+    public function invalidate(TestRun $run, string $reason): bool
     {
-        $run->update(['status' => 'cancelled', 'completed_at' => now()]);
+        return $this->endRunning($run, ['status' => 'invalid', 'invalid_reason' => mb_substr($reason, 0, 250)]);
+    }
+
+    /** Returns false when the run is no longer running; the run then stays as it is. */
+    public function cancel(TestRun $run): bool
+    {
+        return $this->endRunning($run, ['status' => 'cancelled']);
+    }
+
+    /** Ends a run only while it is still running, in one conditional update, so a completed run is never overwritten. */
+    private function endRunning(TestRun $run, array $values): bool
+    {
+        $values['completed_at'] = now();
+        $changed = TestRun::whereKey($run->id)->where('status', 'running')->update($values) === 1;
+        if ($changed) {
+            $run->forceFill($values)->syncOriginal();
+        }
+
+        return $changed;
     }
 
     /**
@@ -168,8 +199,7 @@ class RunResultService
         $cutoff = now()->subMinutes(config('lab.run_expiry_minutes'));
         $expired = TestRun::where('status', 'running')->where('started_at', '<', $cutoff)->with(['session', 'deviceClass'])->get()
             ->filter(fn (TestRun $run) => $run->isExpired());
-        $expired->each(fn (TestRun $run) => $run->update(['status' => 'invalid', 'invalid_reason' => 'expired', 'completed_at' => now()]));
 
-        return $expired->count();
+        return $expired->filter(fn (TestRun $run) => $this->endRunning($run, ['status' => 'invalid', 'invalid_reason' => 'expired']))->count();
     }
 }

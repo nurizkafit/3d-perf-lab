@@ -36,7 +36,7 @@ class ToolSummaryService
         // Completed runs on this device class that include any candidate asset or any selected tool, newest first.
         $runs = TestRun::where('status', 'completed')->where('device_class_id', $deviceClassId)
             ->whereHas('session', fn ($q) => $q->when($ownerId, fn ($o) => $o->where('created_by', $ownerId))->whereHas('assets', fn ($a) => $a->whereIn('assets.id', $candidateIds ?: [0])))
-            ->with(['session.assets:id', 'results', 'checks'])
+            ->with(['session.assets:id', 'results' => fn ($q) => $q->withoutSamples(), 'checks'])
             ->orderByDesc('completed_at')->orderByDesc('id')->get();
 
         $assets = Asset::with('metrics')->whereIn('id', $candidateIds)->get()->keyBy('id');
@@ -162,7 +162,7 @@ class ToolSummaryService
     {
         return TestRun::where('status', 'completed')->where('device_class_id', $deviceClassId)
             ->whereHas('session', fn ($q) => $q->where('method', 'crowd')->where('scenario', 'per_tool')->when($this->ownerId, fn ($o) => $o->where('created_by', $this->ownerId)))
-            ->with(['session', 'results' => fn ($q) => $q->where('group_tool_id', $toolId)->whereNull('probe_copies')])
+            ->with(['session', 'results' => fn ($q) => $q->withoutSamples()->where('group_tool_id', $toolId)->whereNull('probe_copies')])
             ->orderByDesc('completed_at')->get()
             ->filter(fn (TestRun $run) => in_array($toolId, $run->session->configuration_json['tool_ids'] ?? [], true))
             ->take(5)

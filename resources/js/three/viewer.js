@@ -38,7 +38,7 @@ export function frameCamera(camera, object, preset = DEFAULT_CAMERA) {
     return frameBox(camera, new THREE.Box3().setFromObject(object), preset);
 }
 
-/** Auto-frame a box (Stress/Headroom: the grid of the largest step), returns the centre. */
+/** Auto-frame a box (for example the crowd of a probe, or all panes of a look phase), returns the centre. */
 export function frameBox(camera, box, preset = DEFAULT_CAMERA) {
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     const radius = sphere.radius > 0 ? sphere.radius : 1;

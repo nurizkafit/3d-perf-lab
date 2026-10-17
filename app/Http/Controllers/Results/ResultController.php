@@ -40,7 +40,7 @@ class ResultController extends Controller
             ->when($device, fn ($q) => $q->whereHas('runs', fn ($r) => $r->where('device_class_id', $device)))
             ->when($date('from'), fn ($q, $from) => $q->where('created_at', '>=', Carbon::parse($from, $zone)->startOfDay()->utc()))
             ->when($date('to'), fn ($q, $to) => $q->where('created_at', '<=', Carbon::parse($to, $zone)->endOfDay()->utc()))
-            ->with(['runs' => fn ($q) => $q->orderByDesc('id'), 'runs.deviceClass', 'runs.results', 'runs.checks', 'report', 'creator'])
+            ->with(['runs' => fn ($q) => $q->orderByDesc('id'), 'runs.deviceClass', 'runs.results' => fn ($q) => $q->withoutSamples(), 'runs.checks', 'report', 'creator'])
             ->withCount('assets')
             ->orderByDesc('created_at')->orderByDesc('id')
             ->paginate(25)->withQueryString();

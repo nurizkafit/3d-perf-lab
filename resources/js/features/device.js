@@ -1,7 +1,6 @@
 // Device class confirmation (BENCHMARK.md §7.1): show the detected signals and the suggestion; preselect the
 // session class, else the class remembered on this device, else a single suggested match. The user confirms.
-import { collectContext, suggestDeviceClass } from '../three/environment.js';
-
+// environment.js is imported on demand, so it stays out of the entry bundle.
 const STORAGE_KEY = 'device-class-id';
 
 export default () => ({
@@ -11,6 +10,7 @@ export default () => ({
 
     async init() {
         const config = JSON.parse(document.getElementById('device-config').textContent);
+        const { collectContext, suggestDeviceClass } = await import('../three/environment.js');
         this.context = await collectContext();
         this.suggestion = suggestDeviceClass(this.context, config.classes);
 

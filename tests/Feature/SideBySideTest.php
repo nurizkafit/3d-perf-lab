@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\RunResultService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /** Side-by-Side Test (PROJECT.md M4.3, BENCHMARK.md §4.3–§4.5, §5, §6): page, test creation, run, results. */
@@ -245,6 +246,44 @@ class SideBySideTest extends TestCase
         $this->actingAs($this->user);
         $this->submit($run, $good)->assertOk();
         $this->submit($run, $good)->assertUnprocessable()->assertJsonValidationErrors('run');
+    }
+
+    public function test_a_cancel_or_invalidate_after_a_submit_keeps_the_run_completed(): void
+    {
+        $a = $this->asset('A');
+        $b = $this->asset('B');
+        $this->confirmDevice();
+        $test = $this->createTest([$a, $b], ['configuration' => ['motions' => ['static'], 'repetitions' => 1]]);
+        $run = $this->startRun($test);
+        $this->submit($run, $this->results($test, ['A' => [[400, 16.7, 0, 0.5]], 'B' => [[400, 16.7, 0, 0.5]]]))->assertOk();
+
+        // The request checked a model that was still running; the submit completed the run in the meantime.
+        $runs = app(RunResultService::class);
+        $this->assertFalse($runs->cancel($run));
+        $this->assertFalse($runs->invalidate($run, 'The tab was hidden during measurement.'));
+        $this->assertSame('completed', $run->fresh()->status);
+        $this->assertNull($run->fresh()->invalid_reason);
+    }
+
+    public function test_a_submit_that_loses_the_race_stores_nothing(): void
+    {
+        $a = $this->asset('A');
+        $b = $this->asset('B');
+        $this->confirmDevice();
+        $test = $this->createTest([$a, $b], ['configuration' => ['motions' => ['static'], 'repetitions' => 1]]);
+        $run = $this->startRun($test);
+        $results = $this->results($test, ['A' => [[400, 16.7, 0, 0.5]], 'B' => [[400, 16.7, 0, 0.5]]]);
+
+        // The request validated a model that was still running; another submit completed the run in the meantime.
+        TestRun::whereKey($run->id)->update(['status' => 'completed']);
+
+        $this->expectException(ValidationException::class);
+        try {
+            app(RunResultService::class)->submit($run, ['results' => $results]);
+        } finally {
+            $this->assertSame(0, $run->results()->count());
+            $this->assertSame(0, $run->checks()->count());
+        }
     }
 
     // ---------- Expiry (decision D59) ----------

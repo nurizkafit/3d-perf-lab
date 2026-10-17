@@ -10,7 +10,7 @@ The agent updates this file at each milestone boundary and after each decision. 
 | ----------------- | --------------------------------------- |
 | Current milestone | M5.2 — Deployment (prepared; live deployment waits for the user) |
 | Status            | All milestones built (M4.3–M5.1). M5.2 prepared; the live deployment and its smoke test need the user. Next: the user's end-to-end test, then one feedback and bug-fix session (D60). Open: Q3, Q5 |
-| Last updated      | 2026-10-13                              |
+| Last updated      | 2026-10-17                              |
 
 ---
 
@@ -96,6 +96,24 @@ These decisions were made by the user during the specification review. They are 
 ---
 
 ## History
+
+## 2026-10-17 — Review fixes (feedback and bug-fix session, D60) — completed
+
+**Scope:** fixes from the project review that the user selected: commit the open work, the memory risk in lists, the double submit, docs drift, and the build warning. Public text: Landing cards and the About "Targets, not scores" section, wording approved by the user.
+**Done:**
+- Committed the M4.4–M5.2 work (`6903ae8`).
+- Lists no longer load raw samples: new scope `TestResult::withoutSamples()`, used by the results history, the dashboard, and the Tool summary. Each row can hold up to 3,600 values per series, which could exceed the PHP memory limit on shared hosting.
+- Double submit: `RunResultService::submit` locks the run row and checks again that it is still running inside the transaction. A second submit gets a 422 and stores nothing.
+- Invalidate, cancel, and run expiry end a run only while it is `running` (one conditional update). A cancel or invalidate that arrives after a completed submit returns 409 and keeps the run completed.
+- `features/device.js` imports `three/environment.js` on demand, so it leaves the entry bundle and the `INEFFECTIVE_DYNAMIC_IMPORT` build warning is gone.
+- `AGENT.md` §6.1 and §6.2 now list the real folders and files; stale "Stress/Headroom" comment in `viewer.js` replaced.
+**Decisions:** fix selection and the public text — user (2026-10-17).
+**Checks:** Pint passes. PHP 192 tests pass (1,147 assertions; new `test_a_submit_that_loses_the_race_stores_nothing`, `test_a_cancel_or_invalidate_after_a_submit_keeps_the_run_completed`). JS 21 pass. Build passes, no warning except the Three.js chunk size; the entry bundle contains no Three.js.
+**Issues:**
+- Landing hero line still says "against a clear performance budget"; not in the approved text.
+- The `/device` page was not checked in a browser after the import change.
+**Files:** `app/Models/TestResult.php`, `app/Http/Controllers/Api/TestRunController.php`, `resources/views/pages/public/{landing,about}.blade.php`, `app/Http/Controllers/Results/ResultController.php`, `app/Http/Controllers/Dashboard/DashboardController.php`, `app/Services/ToolSummaryService.php`, `app/Services/RunResultService.php`, `tests/Feature/SideBySideTest.php`, `resources/js/features/device.js`, `resources/js/three/viewer.js`, `docs/AGENT.md`.
+**Next:** the user's wording for the public text; then the live deployment with the user.
 
 ## 2026-10-13 — M5.2 Deployment — prepared (stopped before the live deployment)
 

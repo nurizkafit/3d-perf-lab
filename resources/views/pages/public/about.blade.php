@@ -2,7 +2,7 @@
     $sections = [
         'purpose' => 'Purpose',
         'method' => 'How tests work',
-        'budgets' => 'Budgets, not scores',
+        'targets' => 'Targets, not scores',
         'limits' => 'Limitations',
     ];
 @endphp
@@ -36,9 +36,9 @@
                 <h2 class="text-h2 font-bold">How tests work</h2>
                 <p>Every test runs in the browser with fixed renderer settings. Each measurement repeats, and reports show the median and the spread. Frame interval and render work time are recorded separately.</p>
             </section>
-            <section id="budgets" class="scroll-mt-6 space-y-3">
-                <h2 class="text-h2 font-bold">Budgets, not scores</h2>
-                <p>A result is Pass or Fail against each enabled budget item for one device class. The product never ranks assets or combines metrics into a score.</p>
+            <section id="targets" class="scroll-mt-6 space-y-3">
+                <h2 class="text-h2 font-bold">Targets, not scores</h2>
+                <p>A result is Pass or Fail against each Target check for one device class. Results mark the best asset per metric. The product never combines metrics into one score.</p>
             </section>
             <section id="limits" class="scroll-mt-6 space-y-3">
                 <h2 class="text-h2 font-bold">Limitations</h2>

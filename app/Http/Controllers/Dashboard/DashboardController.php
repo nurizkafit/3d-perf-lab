@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $tests = TestSession::query()->when(! $user->isAdmin(), fn ($q) => $q->where('created_by', $user->id));
-        $recent = (clone $tests)->with(['runs' => fn ($q) => $q->orderByDesc('id'), 'runs.deviceClass', 'runs.results', 'runs.checks'])
+        $recent = (clone $tests)->with(['runs' => fn ($q) => $q->orderByDesc('id'), 'runs.deviceClass', 'runs.results' => fn ($q) => $q->withoutSamples(), 'runs.checks'])
             ->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get();
 
         return view('pages.dashboard.index', [
