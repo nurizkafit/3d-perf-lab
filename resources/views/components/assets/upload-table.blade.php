@@ -65,9 +65,9 @@
                         <p class="field-error" x-show="fieldError(row, 'object_id')" x-text="fieldError(row, 'object_id')"></p>
                     </td>
                     <td>
-                        <input class="input w-20" type="number" min="0" step="0.25" :class="row.flash.production_time_hours && 'cell-flash'" :aria-label="'Production time for ' + row.file"
-                               x-model="row.production_time_hours" x-on:input="edit(row)" :disabled="row.status !== 'staged' && row.status !== 'uploading'" :aria-invalid="!!fieldError(row, 'production_time_hours')">
-                        <p class="field-error" x-show="fieldError(row, 'production_time_hours')" x-text="fieldError(row, 'production_time_hours')"></p>
+                        <input class="input w-20" type="number" min="0" step="any" :class="row.flash.production_time_minutes && 'cell-flash'" :aria-label="'Production time for ' + row.file"
+                               x-model="row.production_time_minutes" x-on:input="edit(row)" :disabled="row.status !== 'staged' && row.status !== 'uploading'" :aria-invalid="!!fieldError(row, 'production_time_minutes')">
+                        <p class="field-error" x-show="fieldError(row, 'production_time_minutes')" x-text="fieldError(row, 'production_time_minutes')"></p>
                     </td>
                     <td x-text="row.format"></td>
                     <td data-numeric x-text="row.size"></td>

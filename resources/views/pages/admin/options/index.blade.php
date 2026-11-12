@@ -1,5 +1,8 @@
 <x-layouts::app :title="$definition['label']" description="Values that appear in dropdowns. An item in use cannot be deleted, only deactivated. Tests keep a copy of preset values, so edits never change old results." :sample="false">
     <x-slot:actions>
+        @if (in_array($list, \App\Support\OptionLists::BULK_LISTS, true))
+            <x-ui.button :href="route('admin.options.bulk.create', $list)" variant="secondary" icon="list-plus">Add several</x-ui.button>
+        @endif
         <x-ui.button :href="route('admin.options.create', $list)" icon="plus">Add {{ $definition['singular'] }}</x-ui.button>
     </x-slot:actions>
 

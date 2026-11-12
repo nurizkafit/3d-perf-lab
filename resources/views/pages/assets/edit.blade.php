@@ -15,7 +15,7 @@
                     <p class="field-hint">Only an administrator can change the author.</p>
                 </div>
             @endcan
-            <x-ui.input name="production_time_hours" label="Production time (h)" type="number" min="0" step="0.25" :value="(float) $asset->production_time_hours" required />
+            <x-ui.input name="production_time_minutes" label="Production time (min)" type="number" min="0" step="any" :value="(float) $asset->production_time_minutes" required />
         </div>
         <x-ui.textarea name="description" label="Description" :value="$asset->description" hint="Optional." />
         <div class="flex flex-wrap items-center gap-3">

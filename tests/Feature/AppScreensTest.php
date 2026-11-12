@@ -85,7 +85,7 @@ class AppScreensTest extends TestCase
         $user = User::factory()->create();
         $asset = Asset::create([
             'name' => 'Timed asset', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'author' => 'A', 'uploaded_by' => $user->id,
-            'production_time_hours' => 1, 'format' => 'glb', 'web_file_path' => 'assets/web/x/x.glb', 'file_size' => 10, 'sha256' => str_repeat('b', 64),
+            'production_time_minutes' => 1, 'format' => 'glb', 'web_file_path' => 'assets/web/x/x.glb', 'file_size' => 10, 'sha256' => str_repeat('b', 64),
         ]);
 
         $this->get("/assets/{$asset->id}")->assertOk()->assertSee('2026-10-08 03:30');

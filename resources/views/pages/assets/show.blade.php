@@ -40,7 +40,7 @@
                 <dt class="text-neutral-600">Object</dt><dd>{{ $asset->object?->name ?? '—' }}</dd>
                 <dt class="text-neutral-600">Author</dt><dd>{{ $asset->author }}</dd>
                 <dt class="text-neutral-600">Uploaded by</dt><dd>{{ $asset->uploader->name }}</dd>
-                <dt class="text-neutral-600">Production time</dt><dd class="num">{{ rtrim(rtrim($asset->production_time_hours, '0'), '.') }} h</dd>
+                <dt class="text-neutral-600">Production time</dt><dd class="num">{{ rtrim(rtrim($asset->production_time_minutes, '0'), '.') }} min</dd>
                 <dt class="text-neutral-600">Uploaded</dt><dd class="num">{{ $asset->created_at->display()->format('Y-m-d H:i') }}</dd>
             </dl>
             @if ($asset->description)

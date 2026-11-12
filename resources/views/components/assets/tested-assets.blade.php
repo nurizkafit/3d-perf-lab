@@ -12,7 +12,7 @@
             <th scope="col" data-numeric>File size</th>
             <th scope="col" data-numeric>Vertices</th>
             <th scope="col" data-numeric>Triangles</th>
-            <th scope="col" data-numeric>Production time (h)</th>
+            <th scope="col" data-numeric>Production time (min)</th>
             <th scope="col">Uploaded by</th>
         </tr>
     </x-slot:head>
@@ -27,7 +27,7 @@
             <td data-numeric>{{ $asset['size'] }}</td>
             <td data-numeric>{{ number_format($asset['vertices']) }}</td>
             <td data-numeric>{{ number_format($asset['triangles']) }}</td>
-            <td data-numeric>{{ $asset['hours'] }}</td>
+            <td data-numeric>{{ $asset['minutes'] }}</td>
             <td>{{ $asset['uploaded_by'] }}</td>
         </tr>
     @endforeach

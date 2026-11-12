@@ -5,6 +5,8 @@
         'canSetAuthor' => $canSetAuthor,
         'authorDefault' => auth()->user()->name,
         'maxBytes' => $maxBytes,
+        'tools' => collect($tools)->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
+        'objects' => collect($objects)->map(fn ($name, $id) => ['id' => $id, 'name' => $name])->values(),
         'endpoints' => [
             'sessions' => route('api.uploads.sessions.store'),
             'files' => route('api.uploads.files.store', '__SESSION__'),
@@ -55,8 +57,8 @@
                     </select>
                 </div>
                 <div>
-                    <label for="bulk-hours" class="field-label">Avg. production time (h)</label>
-                    <input id="bulk-hours" class="input" type="number" min="0" step="0.25" x-model="bulk.production_time_hours" placeholder="Leave empty to keep">
+                    <label for="bulk-hours" class="field-label">Avg. production time (min)</label>
+                    <input id="bulk-hours" class="input" type="number" min="0" step="any" x-model="bulk.production_time_minutes" placeholder="Leave empty to keep">
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">

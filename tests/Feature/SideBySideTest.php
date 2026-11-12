@@ -35,7 +35,7 @@ class SideBySideTest extends TestCase
         $asset = Asset::create([
             'name' => $name, 'tool_id' => Tool::where('name', $tool)->value('id'),
             'object_id' => AssetObject::firstOrCreate(['name' => 'Bird'])->id, 'author' => 'Author '.$name,
-            'uploaded_by' => $this->user->id, 'production_time_hours' => 1, 'format' => 'glb',
+            'uploaded_by' => $this->user->id, 'production_time_minutes' => 1, 'format' => 'glb',
             'web_file_path' => "assets/web/{$uuid}/{$uuid}.glb", 'file_size' => $fileSize, 'sha256' => hash('sha256', $uuid),
         ]);
         $asset->metrics()->create(['vertices' => 30, 'triangles' => 10, 'meshes' => 1, 'materials' => 1, 'textures' => 0, 'texture_memory_estimate_bytes' => 0]);

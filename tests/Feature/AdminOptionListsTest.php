@@ -198,4 +198,34 @@ class AdminOptionListsTest extends TestCase
         $this->post('/admin/options/tools', ['name' => 'Sneaky'])->assertForbidden();
         $this->assertTrue($tool->fresh()->is_active);
     }
+
+    public function test_several_names_are_added_at_once_and_duplicates_are_skipped(): void
+    {
+        $existing = Tool::orderBy('id')->firstOrFail()->name;
+        $before = Tool::count();
+
+        $this->get('/admin/options/tools/bulk')->assertOk();
+        $this->post('/admin/options/tools/bulk', ['names' => "Bulk One\n\n  Bulk Two \nbulk one\n".strtoupper($existing)])
+            ->assertRedirect('/admin/options/tools')
+            ->assertSessionHas('status', fn ($status) => str_contains($status, 'Added 2') && str_contains($status, 'Skipped 1'));
+
+        $this->assertSame($before + 2, Tool::count());
+        $this->assertTrue(Tool::where('name', 'Bulk Two')->exists());
+    }
+
+    public function test_several_names_work_for_objects_only_with_names_only_lists(): void
+    {
+        $this->post('/admin/options/objects/bulk', ['names' => "Bulk Chair\nBulk Table"])->assertRedirect();
+        $this->assertSame(2, AssetObject::whereIn('name', ['Bulk Chair', 'Bulk Table'])->count());
+        $this->post('/admin/options/objects/bulk', ['names' => " \n "])->assertSessionHasErrors('names');
+        $this->get('/admin/options/targets/bulk')->assertNotFound();
+    }
+
+    public function test_a_user_cannot_add_several_names(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post('/admin/options/tools/bulk', ['names' => 'Sneaky'])->assertForbidden();
+        $this->assertFalse(Tool::where('name', 'Sneaky')->exists());
+    }
 }

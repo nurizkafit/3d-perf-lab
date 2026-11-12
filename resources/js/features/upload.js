@@ -1,8 +1,9 @@
 // Bulk upload (PRD.md §7.1): drop → group → inspect in the browser → upload each model → edit metadata → register.
 // Config comes from <script type="application/json" id="upload-config">.
 import { apiFetch, uploadWithProgress } from '../api.js';
+import { parseFileName } from './filename-meta.js';
 
-const BULK_FIELDS = ['author', 'tool_id', 'object_id', 'production_time_hours'];
+const BULK_FIELDS = ['author', 'tool_id', 'object_id', 'production_time_minutes'];
 const FLASH_MS = 260; // --duration-slow
 const SAVE_DELAY_MS = 600;
 const MODEL_EXTENSIONS = ['glb', 'gltf'];
@@ -61,7 +62,7 @@ export default () => ({
     config: {},
     sessionId: null,
     rows: [],
-    bulk: { author: '', tool_id: '', object_id: '', production_time_hours: '' },
+    bulk: { author: '', tool_id: '', object_id: '', production_time_minutes: '' },
     over: false,
     busy: false,
     registering: false,
@@ -88,7 +89,7 @@ export default () => ({
             preview: base.preview ?? item.thumbnail_url,
             ...item,
             // Keep what the user already typed while the file was uploading.
-            ...(base.edited ? { name: base.name, author: base.author, tool_id: base.tool_id, object_id: base.object_id, production_time_hours: base.production_time_hours, description: base.description } : {}),
+            ...(base.edited ? { name: base.name, author: base.author, tool_id: base.tool_id, object_id: base.object_id, production_time_minutes: base.production_time_minutes, description: base.description } : {}),
         };
     },
 
@@ -136,7 +137,7 @@ export default () => ({
             const row = {
                 key: `l${this.nextKey++}`, id: null, file: group.main.name, status: 'uploading', progress: 0,
                 format: extension(group.main.name).toUpperCase(), size: this.formatSize(group.main.size + group.dependents.reduce((sum, f) => sum + f.size, 0)),
-                name: '', author: this.config.authorDefault, tool_id: '', object_id: '', production_time_hours: '', description: '',
+                name: '', author: this.config.authorDefault, tool_id: '', object_id: '', production_time_minutes: '', description: '',
                 selected: false, edited: false, expanded: false, flash: {}, preview: null, error: null, warning: null, field_errors: {},
                 dependents: group.dependents.map((f) => f.name),
             };
@@ -185,11 +186,22 @@ export default () => ({
 
         try {
             const item = await uploadWithProgress(this.endpoint('files'), form, (fraction) => (row.progress = fraction));
+            const wasEdited = row.edited;
             Object.assign(row, this.rowFromItem(item, row));
+            if (!wasEdited) this.applyFileNameMeta(row, group.main.name);
             if (row.edited) this.save(row);
         } catch (error) {
             Object.assign(row, { status: 'failed', progress: 1, error: error.message });
         }
+    },
+
+    // Pre-fill author, tool, and object from `author_tool_object.glb`. Empty parts change nothing.
+    applyFileNameMeta(row, fileName) {
+        const found = parseFileName(fileName, { tools: this.config.tools ?? [], objects: this.config.objects ?? [] });
+        if (found.author && this.config.canSetAuthor) row.author = found.author;
+        if (found.tool_id) row.tool_id = Number(found.tool_id); // same type as the server items
+        if (found.object_id) row.object_id = Number(found.object_id);
+        if (found.tool_id || found.object_id || (found.author && this.config.canSetAuthor)) this.save(row);
     },
 
     // ---------- Editing ----------
@@ -214,7 +226,7 @@ export default () => ({
             author: row.author,
             tool_id: row.tool_id === '' ? null : Number(row.tool_id),
             object_id: row.object_id === '' ? null : Number(row.object_id),
-            production_time_hours: row.production_time_hours === '' ? null : row.production_time_hours,
+            production_time_minutes: row.production_time_minutes === '' ? null : row.production_time_minutes,
             description: row.description,
         };
     },

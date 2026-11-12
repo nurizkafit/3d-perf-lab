@@ -115,6 +115,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/', [OptionListController::class, 'index'])->name('index');
             Route::get('/create', [OptionListController::class, 'create'])->name('create');
             Route::post('/', [OptionListController::class, 'store'])->name('store');
+            Route::get('/bulk', [OptionListController::class, 'bulkCreate'])->name('bulk.create');
+            Route::post('/bulk', [OptionListController::class, 'bulkStore'])->name('bulk.store');
             Route::get('/{item}/edit', [OptionListController::class, 'edit'])->whereNumber('item')->name('edit');
             Route::put('/{item}', [OptionListController::class, 'update'])->whereNumber('item')->name('update');
             Route::post('/{item}/deactivate', [OptionListController::class, 'deactivate'])->whereNumber('item')->name('deactivate');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OptionActionRequest;
+use App\Http\Requests\Admin\OptionBulkRequest;
 use App\Http\Requests\Admin\OptionItemRequest;
 use App\Models\DeviceClass;
 use App\Support\OptionLists;
@@ -56,6 +57,47 @@ class OptionListController extends Controller
         });
 
         return redirect()->route('admin.options.index', $list)->with('status', "Added {$item->name}.");
+    }
+
+    public function bulkCreate(string $list): View
+    {
+        abort_unless(in_array($list, OptionLists::BULK_LISTS, true), 404);
+
+        return view('pages.admin.options.bulk', ['list' => $list, 'definition' => OptionLists::definition($list)]);
+    }
+
+    /** One name per line. Blank lines and names that already exist (any case) are skipped and reported. */
+    public function bulkStore(OptionBulkRequest $request, string $list): RedirectResponse
+    {
+        $definition = OptionLists::definition($list);
+        $existing = OptionLists::query($list)->pluck('name')->map(fn ($name) => mb_strtolower($name))->all();
+        $added = [];
+        $skipped = [];
+
+        DB::transaction(function () use ($request, $list, $definition, &$existing, &$added, &$skipped) {
+            $order = (int) OptionLists::query($list)->max('sort_order');
+
+            foreach ($request->names() as $name) {
+                if (in_array(mb_strtolower($name), $existing, true)) {
+                    $skipped[] = $name;
+
+                    continue;
+                }
+
+                $item = new $definition['model'](OptionLists::attributesFromInput($list, ['name' => $name]));
+                $item->sort_order = ++$order;
+                $item->save();
+                $existing[] = mb_strtolower($name);
+                $added[] = $name;
+            }
+        });
+
+        $message = 'Added '.count($added).' '.($definition['singular']).(count($added) === 1 ? '' : 's').'.';
+        if ($skipped) {
+            $message .= ' Skipped '.count($skipped).' that already exist: '.implode(', ', $skipped).'.';
+        }
+
+        return redirect()->route('admin.options.index', $list)->with('status', $message);
     }
 
     public function update(OptionItemRequest $request, string $list, int $item): RedirectResponse

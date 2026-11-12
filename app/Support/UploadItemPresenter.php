@@ -26,7 +26,7 @@ class UploadItemPresenter
             'author' => $user->can('setAuthor', Asset::class) ? ($metadata['author'] ?? $user->name) : $user->name,
             'tool_id' => isset($metadata['tool_id']) ? (string) $metadata['tool_id'] : '',
             'object_id' => isset($metadata['object_id']) ? (string) $metadata['object_id'] : '',
-            'production_time_hours' => isset($metadata['production_time_hours']) ? (string) $metadata['production_time_hours'] : '',
+            'production_time_minutes' => isset($metadata['production_time_minutes']) ? (string) $metadata['production_time_minutes'] : '',
             'description' => $metadata['description'] ?? '',
             'error' => $item->error_json['file'] ?? null,
             'field_errors' => $item->status === 'staged' ? collect($item->error_json ?? [])->except('file')->map(fn ($messages) => (array) $messages)->all() : [],

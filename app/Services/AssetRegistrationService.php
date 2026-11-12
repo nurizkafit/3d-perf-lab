@@ -36,7 +36,7 @@ class AssetRegistrationService
             $item->update(['metadata_json' => $input]);
 
             $validator = Validator::make($input, $this->rules($user), [], [
-                'tool_id' => 'tool', 'object_id' => 'object', 'production_time_hours' => 'production time',
+                'tool_id' => 'tool', 'object_id' => 'object', 'production_time_minutes' => 'production time',
             ]);
 
             if ($validator->fails()) {
@@ -62,7 +62,7 @@ class AssetRegistrationService
             'author' => $user->can('setAuthor', Asset::class) ? trim((string) ($row['author'] ?? '')) : $user->name,
             'tool_id' => $row['tool_id'] ?? null,
             'object_id' => $row['object_id'] ?? null,
-            'production_time_hours' => $row['production_time_hours'] ?? null,
+            'production_time_minutes' => $row['production_time_minutes'] ?? null,
             'description' => isset($row['description']) && trim((string) $row['description']) !== '' ? trim((string) $row['description']) : null,
         ];
     }
@@ -75,7 +75,7 @@ class AssetRegistrationService
             'tool_id' => ['required', 'integer', Rule::exists(Tool::class, 'id')->where('is_active', true)],
             // Required for every new upload (decision D52).
             'object_id' => ['required', 'integer', Rule::exists(AssetObject::class, 'id')->where('is_active', true)],
-            'production_time_hours' => ['required', 'numeric', 'min:0', 'max:10000'],
+            'production_time_minutes' => ['required', 'numeric', 'min:0', 'max:600000'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -109,7 +109,7 @@ class AssetRegistrationService
                     'author' => $data['author'],
                     'uploaded_by' => $user->id,
                     'description' => $data['description'],
-                    'production_time_hours' => $data['production_time_hours'],
+                    'production_time_minutes' => $data['production_time_minutes'],
                     'format' => $item->format,
                     'web_file_path' => $webDir.'/'.basename($item->staged_path),
                     'thumbnail_path' => $thumbnail,

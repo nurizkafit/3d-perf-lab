@@ -179,7 +179,7 @@
             'id' => $e['asset']->id, 'name' => $e['asset']->name, 'tool' => $e['asset']->tool->name, 'object' => $e['asset']->object?->name,
             'author' => $e['asset']->author, 'format' => strtoupper($e['asset']->format), 'size' => Number::fileSize($e['asset']->file_size, maxPrecision: 1),
             'vertices' => $e['asset']->metrics?->vertices ?? 0, 'triangles' => $e['asset']->metrics?->triangles ?? 0,
-            'hours' => $e['asset']->production_time_hours, 'uploaded_by' => $e['asset']->uploader?->name ?? '—',
+            'minutes' => $e['asset']->production_time_minutes, 'uploaded_by' => $e['asset']->uploader?->name ?? '—',
         ])->values()->all()" />
     </section>
 
