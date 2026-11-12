@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
-    'name', 'tool_id', 'object_id', 'author', 'uploaded_by', 'description', 'production_time_hours',
+    'name', 'tool_id', 'object_id', 'author', 'uploaded_by', 'description', 'production_time_minutes',
     'format', 'web_file_path', 'thumbnail_path', 'file_size', 'sha256',
 ])]
 class Asset extends Model
@@ -20,7 +20,7 @@ class Asset extends Model
     protected function casts(): array
     {
         return [
-            'production_time_hours' => 'decimal:2',
+            'production_time_minutes' => 'decimal:2',
             'file_size' => 'integer',
         ];
     }

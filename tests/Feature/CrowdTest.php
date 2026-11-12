@@ -39,7 +39,7 @@ class CrowdTest extends TestCase
 
         return Asset::create([
             'name' => $name ?? "{$object} {$tool}", 'tool_id' => $this->tool($tool), 'object_id' => AssetObject::firstOrCreate(['name' => "Crowd {$object}"])->id,
-            'author' => 'A', 'uploaded_by' => $this->user->id, 'production_time_hours' => 1, 'format' => 'glb',
+            'author' => 'A', 'uploaded_by' => $this->user->id, 'production_time_minutes' => 1, 'format' => 'glb',
             'web_file_path' => "assets/web/{$uuid}/{$uuid}.glb", 'file_size' => 1000, 'sha256' => hash('sha256', $uuid),
         ]);
     }

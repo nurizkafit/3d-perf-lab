@@ -21,7 +21,7 @@ class UpdateUploadItemRequest extends FormRequest
             'author' => ['nullable', 'string', 'max:100'],
             'tool_id' => ['nullable', 'integer'],
             'object_id' => ['nullable', 'integer'],
-            'production_time_hours' => ['nullable', 'numeric'],
+            'production_time_minutes' => ['nullable', 'numeric'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
     }

@@ -39,7 +39,7 @@ class PolicyTest extends TestCase
             'tool_id' => Tool::firstOrCreate(['name' => 'Policy test tool'])->id,
             'author' => 'Someone',
             'uploaded_by' => $this->owner->id,
-            'production_time_hours' => 1,
+            'production_time_minutes' => 1,
             'format' => 'glb',
             'web_file_path' => 'assets/web/'.Str::uuid().'.glb',
             'file_size' => 100,

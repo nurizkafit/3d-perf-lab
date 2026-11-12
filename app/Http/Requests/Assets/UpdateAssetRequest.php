@@ -27,14 +27,14 @@ class UpdateAssetRequest extends FormRequest
             // Required (decision D52). An inactive object stays valid for the asset that already uses it.
             'object_id' => ['required', 'integer', Rule::exists(AssetObject::class, 'id')->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $asset->object_id))],
             'author' => [$this->user()->can('setAuthor', Asset::class) ? 'required' : 'nullable', 'string', 'max:100'],
-            'production_time_hours' => ['required', 'numeric', 'min:0', 'max:10000'],
+            'production_time_minutes' => ['required', 'numeric', 'min:0', 'max:600000'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
     public function attributes(): array
     {
-        return ['tool_id' => 'tool', 'object_id' => 'object', 'production_time_hours' => 'production time'];
+        return ['tool_id' => 'tool', 'object_id' => 'object', 'production_time_minutes' => 'production time'];
     }
 
     /** Users never change Author: the submitted value is ignored (PRD.md §4). */

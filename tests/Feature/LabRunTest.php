@@ -38,7 +38,7 @@ class LabRunTest extends TestCase
         $uuid = (string) Str::uuid();
         $asset = Asset::create([
             'name' => 'Lab asset', 'tool_id' => Tool::where('name', 'Blender')->value('id'), 'object_id' => $this->objectId(), 'author' => 'A',
-            'uploaded_by' => $this->user->id, 'production_time_hours' => 1, 'format' => 'glb',
+            'uploaded_by' => $this->user->id, 'production_time_minutes' => 1, 'format' => 'glb',
             'web_file_path' => "assets/web/{$uuid}/{$uuid}.glb", 'file_size' => 2 * 1048576, 'sha256' => hash('sha256', $uuid),
         ]);
         $test = TestSession::create([

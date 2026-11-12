@@ -55,7 +55,7 @@ class AssetLibraryTest extends TestCase
             'object_id' => $this->objectId(),
             'author' => 'Author',
             'uploaded_by' => $this->owner->id,
-            'production_time_hours' => 1,
+            'production_time_minutes' => 1,
             'format' => $format,
             'web_file_path' => "assets/web/{$uuid}/{$uuid}.{$format}",
             'thumbnail_path' => "assets/thumbnails/{$uuid}.webp",
@@ -116,7 +116,7 @@ class AssetLibraryTest extends TestCase
     {
         $asset = $this->makeAsset();
 
-        $this->actingAs($this->owner)->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => null, 'production_time_hours' => 1])
+        $this->actingAs($this->owner)->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => null, 'production_time_minutes' => 1])
             ->assertSessionHasErrors('object_id');
     }
 
@@ -186,7 +186,7 @@ class AssetLibraryTest extends TestCase
         $asset = $this->makeAsset(['author' => 'Original Author']);
 
         $this->actingAs($this->owner)->put("/assets/{$asset->id}", [
-            'name' => 'Renamed', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'Hacked Author', 'production_time_hours' => 4, 'description' => 'New text',
+            'name' => 'Renamed', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'Hacked Author', 'production_time_minutes' => 4, 'description' => 'New text',
         ])->assertRedirect("/assets/{$asset->id}");
 
         $asset->refresh();
@@ -198,7 +198,7 @@ class AssetLibraryTest extends TestCase
         $asset = $this->makeAsset();
 
         $this->actingAs($this->admin)->put("/assets/{$asset->id}", [
-            'name' => $asset->name, 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'New Author', 'production_time_hours' => 1,
+            'name' => $asset->name, 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'author' => 'New Author', 'production_time_minutes' => 1,
         ])->assertRedirect();
 
         $this->assertSame('New Author', $asset->fresh()->author);
@@ -210,7 +210,7 @@ class AssetLibraryTest extends TestCase
         $this->actingAs($this->other);
 
         $this->get("/assets/{$asset->id}/edit")->assertForbidden();
-        $this->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'production_time_hours' => 1])->assertForbidden();
+        $this->put("/assets/{$asset->id}", ['name' => 'X', 'tool_id' => $asset->tool_id, 'object_id' => $asset->object_id, 'production_time_minutes' => 1])->assertForbidden();
         $this->delete("/assets/{$asset->id}")->assertForbidden();
         $this->assertFalse($asset->fresh()->trashed());
 

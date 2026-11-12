@@ -200,7 +200,7 @@ The table shows one row per file:
 | Author          | Input                  | Admin: editable. User: read-only, set to the user's display name                                       |
 | Tool            | Select                 | From the authoring-tool list. Required                                                                 |
 | Object          | Select                 | From the object list. Required                                                                         |
-| Production time | Input (hours, decimal) | Required, ≥ 0                                                                                          |
+| Production time | Input (minutes, decimal) | Required, ≥ 0                                                                                          |
 | Format          | Read-only              | GLB or GLTF                                                                                            |
 | File size       | Read-only              | Human-readable size                                                                                    |
 | Status          | Badge                  | Uploading, Staged, Invalid, Registered, Failed, Removed                                                |
@@ -400,7 +400,7 @@ targets              id, name, max_load_s, target_fps, max_file_size_mb,
                      is_default, is_active, sort_order
 device_class_target  target_id, device_class_id   (a Target serves many classes)
 
-assets               id, name, tool_id, object_id, author, uploaded_by, description, production_time_hours,
+assets               id, name, tool_id, object_id, author, uploaded_by, description, production_time_minutes,
                      format, web_file_path, thumbnail_path, file_size, sha256,
                      deleted_at, timestamps
 asset_metrics        asset_id, vertices, triangles, meshes, materials, textures,

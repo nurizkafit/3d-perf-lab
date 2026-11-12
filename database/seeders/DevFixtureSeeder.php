@@ -75,7 +75,7 @@ class DevFixtureSeeder extends Seeder
                 'author' => $row['author'],
                 'uploaded_by' => $uploader->id,
                 'description' => "Development fixture ({$row['file']}).",
-                'production_time_hours' => $row['hours'],
+                'production_time_minutes' => $row['hours'] * 60, // the fixture table lists hours
                 'format' => $format,
                 'web_file_path' => $path,
                 'file_size' => filesize($source),

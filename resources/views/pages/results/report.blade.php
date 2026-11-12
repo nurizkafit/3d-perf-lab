@@ -23,7 +23,7 @@
             'id' => $asset->id, 'name' => $asset->name, 'tool' => $asset->tool->name, 'object' => $asset->object?->name, 'author' => $asset->author,
             'format' => strtoupper($asset->format), 'size' => Number::fileSize($asset->file_size, maxPrecision: 1),
             'vertices' => $asset->metrics?->vertices ?? 0, 'triangles' => $asset->metrics?->triangles ?? 0,
-            'hours' => $asset->production_time_hours, 'uploaded_by' => $asset->uploader?->name ?? '—',
+            'minutes' => $asset->production_time_minutes, 'uploaded_by' => $asset->uploader?->name ?? '—',
         ])->values()->all()" />
     </section>
 

@@ -47,7 +47,7 @@ class ReportsTest extends TestCase
         $this->files[] = "assets/web/{$uuid}";
         $asset = Asset::create([
             'name' => $name, 'tool_id' => Tool::where('name', 'Blender')->value('id'), 'object_id' => AssetObject::firstOrCreate(['name' => 'Report object'])->id,
-            'author' => 'Author '.$name, 'uploaded_by' => $this->owner->id, 'production_time_hours' => 1, 'format' => 'glb',
+            'author' => 'Author '.$name, 'uploaded_by' => $this->owner->id, 'production_time_minutes' => 1, 'format' => 'glb',
             'web_file_path' => $path, 'file_size' => 2048, 'sha256' => hash('sha256', $uuid),
         ]);
         $asset->metrics()->create(['vertices' => 12, 'triangles' => 20, 'meshes' => 1, 'materials' => 1, 'textures' => 0, 'texture_memory_estimate_bytes' => 0]);

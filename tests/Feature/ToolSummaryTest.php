@@ -35,7 +35,7 @@ class ToolSummaryTest extends TestCase
         $uuid = (string) Str::uuid();
         $asset = Asset::create([
             'name' => "{$object} {$tool}", 'tool_id' => Tool::where('name', $tool)->value('id'), 'object_id' => AssetObject::firstOrCreate(['name' => "Summary {$object}"])->id,
-            'author' => 'A', 'uploaded_by' => $this->user->id, 'production_time_hours' => 1, 'format' => 'glb',
+            'author' => 'A', 'uploaded_by' => $this->user->id, 'production_time_minutes' => 1, 'format' => 'glb',
             'web_file_path' => "assets/web/{$uuid}/{$uuid}.glb", 'file_size' => $size, 'sha256' => hash('sha256', $uuid),
         ]);
         $asset->metrics()->create(['vertices' => $triangles, 'triangles' => $triangles, 'meshes' => 1, 'materials' => 1, 'textures' => 0, 'texture_memory_estimate_bytes' => 0]);

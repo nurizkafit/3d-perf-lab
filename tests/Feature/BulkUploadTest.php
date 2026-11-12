@@ -108,7 +108,7 @@ class BulkUploadTest extends TestCase
         // Bulk apply happens in the browser; the server receives the completed rows.
         $tool = Tool::where('name', 'Blender')->firstOrFail();
         $rows = collect($items)->mapWithKeys(fn ($item) => [$item['id'] => [
-            'name' => $item['name'], 'author' => 'Studio Author', 'tool_id' => $tool->id, 'object_id' => $this->objectId(), 'production_time_hours' => 2.5,
+            'name' => $item['name'], 'author' => 'Studio Author', 'tool_id' => $tool->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 2.5,
         ]])->all();
 
         $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => $rows])->assertOk()->json();
@@ -137,7 +137,7 @@ class BulkUploadTest extends TestCase
         $this->assertSame('invalid', $item['status']);
         $this->assertStringContainsString('Not a GLB or GLTF file', $item['error']);
 
-        $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$item['id'] => ['name' => 'Notes', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1]]])->json();
+        $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$item['id'] => ['name' => 'Notes', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1]]])->json();
         $this->assertSame([], $result['registered']);
         $this->assertDatabaseMissing('assets', ['name' => 'Notes']);
     }
@@ -148,7 +148,7 @@ class BulkUploadTest extends TestCase
         $item = $this->upload($session, $this->fixture('spline/buku.glb'));
 
         $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$item['id'] => [
-            'name' => 'Book', 'author' => 'Someone Else', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1,
+            'name' => 'Book', 'author' => 'Someone Else', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1,
         ]]])->json();
 
         $this->assertSame('Plain User', Asset::find($result['registered'][$item['id']])->author);
@@ -160,7 +160,7 @@ class BulkUploadTest extends TestCase
         $item = $this->upload($session, $this->fixture('spline/buku.glb'));
 
         $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$item['id'] => [
-            'name' => 'Book', 'author' => 'Someone Else', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1,
+            'name' => 'Book', 'author' => 'Someone Else', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1,
         ]]])->json();
 
         $this->assertSame('Someone Else', Asset::find($result['registered'][$item['id']])->author);
@@ -262,14 +262,14 @@ class BulkUploadTest extends TestCase
         $bad = $this->upload($session, $this->fixture('prisma3d/ayam.glb'));
 
         $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [
-            $good['id'] => ['name' => 'Book', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1],
-            $bad['id'] => ['name' => 'Chicken', 'author' => 'A', 'tool_id' => null, 'object_id' => null, 'production_time_hours' => -2],
+            $good['id'] => ['name' => 'Book', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1],
+            $bad['id'] => ['name' => 'Chicken', 'author' => 'A', 'tool_id' => null, 'object_id' => null, 'production_time_minutes' => -2],
         ]])->assertOk()->json();
 
         $this->assertArrayHasKey($good['id'], $result['registered']);
         $this->assertArrayHasKey('tool_id', $result['errors'][$bad['id']]);
         $this->assertArrayHasKey('object_id', $result['errors'][$bad['id']], 'Object is required');
-        $this->assertArrayHasKey('production_time_hours', $result['errors'][$bad['id']]);
+        $this->assertArrayHasKey('production_time_minutes', $result['errors'][$bad['id']]);
         $this->assertSame('staged', UploadItem::find($bad['id'])->status);
         $this->assertSame('open', $result['session_status']);
     }
@@ -281,7 +281,7 @@ class BulkUploadTest extends TestCase
         $tool = Tool::create(['name' => 'Retired tool', 'is_active' => false]);
 
         $result = $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$item['id'] => [
-            'name' => 'Book', 'author' => 'A', 'tool_id' => $tool->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1,
+            'name' => 'Book', 'author' => 'A', 'tool_id' => $tool->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1,
         ]]])->json();
 
         $this->assertArrayHasKey('tool_id', $result['errors'][$item['id']]);
@@ -291,7 +291,7 @@ class BulkUploadTest extends TestCase
     {
         $session = $this->newSession($this->admin);
         $first = $this->upload($session, $this->fixture('spline/buku.glb'));
-        $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$first['id'] => ['name' => 'Book', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_hours' => 1]]]);
+        $this->postJson("/api/uploads/sessions/{$session->id}/register", ['rows' => [$first['id'] => ['name' => 'Book', 'author' => 'A', 'tool_id' => Tool::first()->id, 'object_id' => $this->objectId(), 'production_time_minutes' => 1]]]);
 
         $second = $this->upload($this->newSession($this->admin), $this->fixture('spline/buku.glb'));
 
@@ -304,7 +304,7 @@ class BulkUploadTest extends TestCase
         $session = $this->newSession($this->admin);
         $item = $this->upload($session, $this->fixture('spline/buku.glb'));
 
-        $this->patchJson("/api/uploads/items/{$item['id']}", ['name' => 'Saved name', 'production_time_hours' => 3])->assertOk();
+        $this->patchJson("/api/uploads/items/{$item['id']}", ['name' => 'Saved name', 'production_time_minutes' => 3])->assertOk();
 
         $this->get("/assets/upload/{$session->id}")->assertOk()->assertSee('Saved name');
     }

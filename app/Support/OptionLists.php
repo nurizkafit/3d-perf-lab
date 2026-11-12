@@ -30,6 +30,9 @@ class OptionLists
         'targets' => ['label' => 'Targets', 'singular' => 'Target', 'model' => Target::class, 'default' => true],
     ];
 
+    /** Lists that hold only a name, so several items can be added at once. */
+    public const BULK_LISTS = ['tools', 'objects'];
+
     public const CATEGORIES = ['desktop' => 'Desktop', 'laptop' => 'Laptop', 'tablet' => 'Tablet', 'phone' => 'Phone'];
 
     public const PLATFORMS = ['any' => 'Any', 'android' => 'Android', 'ios' => 'iOS / iPadOS', 'windows' => 'Windows', 'macos' => 'macOS', 'linux' => 'Linux', 'chromeos' => 'ChromeOS'];
